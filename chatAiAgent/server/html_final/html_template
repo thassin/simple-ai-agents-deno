@@ -1,0 +1,6 @@
+
+export function getHTML(): string {
+    const base64 = `%%%%html%%%%`;
+    return atob(base64);
+}
+

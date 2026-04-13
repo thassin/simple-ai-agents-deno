@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "batch_ai_agent/": "../batchAiAgent/src/"
+  },
+}

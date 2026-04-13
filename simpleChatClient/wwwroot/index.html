@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <title>Simple llama.cpp chat client</title>
+    <script type="module" src="./client.js"></script>
+    <style>
+        /* background colors for different message-types etc. */
+        .header {
+            background-color: wheat;
+        }
+        
+        .system {
+            background-color: yellow;
+        }
+        .user {
+            background-color: lightgreen;
+        }
+        .assistant {
+            background-color: lightblue;
+        }
+        
+        /* for assistant messages which may be updated by streaming. */
+        .assistant.is-active-message {
+            background-color: lightgray;
+        }
+        
+        /* for assistant messages which were truncated by a STOP-button-click OR if an error occurred. */
+        .assistant.is-truncated-or-error {
+            background-color: orange;
+        }
+        
+        /* use text wrapping in the PRE elements containing messages. */
+        pre {
+            white-space: pre-wrap;
+        }
+        
+        /* make the form and textarea input align with the rest of UI. */
+        form {
+            width: calc(100% - 8px); /* leave 8px margin 2x? no just once?!? */
+        }
+        textarea {
+            width: 100%;
+            margin-bottom: 5px;
+            resize: none; /* Hides the resize handle completely */
+            min-height: 100px; /* Set a minimum height to prevent collapse */
+            /* width: fit-content; Ensures it doesn't expand beyond content */
+        }
+        
+        .button {
+            width: 90px;
+            padding: 5px;
+        }
+        
+        .fixed-button {
+            position: fixed;
+            bottom: 5px;
+            z-index: 1000; /* ensure staying above other content. */
+        }
+        .fixed1 {
+            right: 10px;
+        }
+        .fixed2 {
+            right: 110px;
+        }
+
+        /* manage stop-button visibility and position. */
+        #idstop {
+            display: none;
+        }
+        #idstop.is-visible {
+            display: block;
+        }
+        
+        /* manage cancel-button visibility and position. */
+        #idcancel {
+            display: none;
+        }
+        #idcancel.is-visible {
+            display: block;
+        }
+    </style>
+    </head>
+    <body>
+
+    <button type="button" id="idstop" class="button fixed-button fixed2" onclick="onStopButtonClicked()">Stop</button>
+    <button type="button" id="idcancel" class="button fixed-button fixed1" onclick="onCancelButtonClicked()">Cancel</button>
+    
+    <div id="idmessages"></div>
+    <hr class="solid">
+    <form id="idform">
+        
+        <textarea
+            id="idinput" rows="10"
+            autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="off"
+            autofocus placeholder="Type your request here..."></textarea>
+        <br>
+        
+        <div style="display:flex; align-items: center;">
+            <input type="submit" value="Submit" class="button">
+        </div>
+        
+    </form>
+    </body>
+</html>

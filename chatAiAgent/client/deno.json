@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "lib": [ "esnext", "DOM" ],
+  },
+  "imports": {
+    "gl_matrix_import": "npm:gl-matrix@3.4.3/esm/index.js",
+    "maquette_import": "npm:maquette@4.1.3/dist/index.js",
+  },
+}
