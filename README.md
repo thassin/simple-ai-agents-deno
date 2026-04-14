@@ -37,9 +37,9 @@ Steps for compiling and running batchAiAgent (using _batch_test01 example as the
 
 Since deno supports compilation of programs to native apps, there is also an example script "chatAiAgent/server/compile_to_binary.sh" about how to do the compilation (it's quite similar in content to the run.sh script).
 
-Deno also supports detailed security permissions, which you can set in run/compilation scripts. Permissions include file read and write access, network access and access to run external program, and all of these allow fine-grained specifications. More about this [here](https://docs.deno.com/runtime/fundamentals/security/).
+Deno also supports detailed security permissions, which you can set in run/compilation scripts. Permissions include file read and write access, network access and access to run external programs, and all of these allow fine-grained specifications. More about this [here](https://docs.deno.com/runtime/fundamentals/security/).
 
-The programs have been tested using Linux OS and llama.cpp AI server.
+The programs have been tested using Linux OS and [llama.cpp](https://github.com/ggml-org/llama.cpp) AI server (that is, llama-server).
 
 Related to AI tool calling, there are 2 tools implemented:
 - reading from a local file.
