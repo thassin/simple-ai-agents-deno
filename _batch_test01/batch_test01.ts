@@ -25,8 +25,9 @@ console.log(completedMessages);
 // => or continue chat further, just by calling handleSubmit() again.
 
 /* this is an example about continuing chat further.
+console.log("THE SECOND handleSubmit() CALL IS STARTING NOW.");
 await handleSubmit("tell a short story about the animals.");
-console.log("PRINTING THE LAST MESSAGE:");
+console.log("PRINTING OUT THE LAST MESSAGE:");
 console.log(completedMessages[completedMessages.length - 1]);
 */
 

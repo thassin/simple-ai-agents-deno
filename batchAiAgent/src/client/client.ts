@@ -49,7 +49,7 @@ export function getLlamaUrl(): string { return config.llama_api_url + completion
 export const completedMessages: Array<_UI_Message> = new Array<_UI_Message>();
 export const pendingMessages: Array<_UI_Message> = new Array<_UI_Message>();
 
-const piResult: _PathInfoResult = setupPathInfo();
+const piResult: _PathInfoResult = await setupPathInfo();
 
 const path_info = piResult.path_info;
 const working_directory = piResult.working_directory;
@@ -537,17 +537,114 @@ interface _PathInfoResult {
     working_directory: string,
 };
 
-function setupPathInfo(): _PathInfoResult {
-    const working_directory = Deno.cwd();
+async function setupPathInfo(): Promise<_PathInfoResult> {
+    const working_directory: string = Deno.cwd();
+    let pathInfo: _ConfigPathInfo|null = null;
     
     // TODO not complete.
     // => check if paths have been set using commandline arguments.
     // => if not then set the current working directory only.
+    // see parseArgs() at chatAiAgent/server/src/server.ts
+    
+    /* try something like this?!?
+    const OPT_RD_1 = "-rd";
+    const OPT_RD_2 = "--root-dir";
+    
+    const OPT_SD_1 = "-sd";
+    const OPT_SD_2 = "--sub-dir";
+    
+    const ERR_BAD_OPTIONS = "ERROR: conflicting options detected.";
+    
+    let rootDir: string|null = null;
+    let subDir: string|null = null;
+    
+    let prev: string = "";
+    for ( let i = 0; i < Deno.args.length; i++ ) {
+        let arg = Deno.args[i];
+        //console.log("    arg " + i + " : " + Deno.args[i]);
+        
+        let isOK = false;
+        
+        // check if the previous option was about root-dir.
+        if ( prev === OPT_RD_1 ) {
+            rootDir = arg;
+            prev = arg = ""; // CLEAR BOTH NOW.
+            isOK = true;
+        }
+        if ( arg === OPT_RD_1 || arg === OPT_RD_2 ) {
+            prev = OPT_RD_1;
+            isOK = true;
+        }
+        
+        // check if the previous option was about sub-dir.
+        if ( prev === OPT_SD_1 ) {
+            subDir = arg;
+            prev = arg = ""; // CLEAR BOTH NOW.
+            isOK = true;
+        }
+        if ( arg === OPT_SD_1 || arg === OPT_SD_2 ) {
+            prev = OPT_SD_1;
+            isOK = true;
+        }
+    }
+    
+    if ( rootDir != null ) {
+        if ( rootDir.endsWith("/") === false ) rootDir += "/";
+        
+        if ( subDir == null ) {
+            subDir = "";
+        } else {
+            if ( subDir.endsWith("/") === false ) subDir += "/";
+        }
+        
+        // make sure that:
+        //    1) the assigned root/subdir(s) are real, and
+        //    2) consistent with current working directory.
+        
+        let realPath: string;
+        let isDir: boolean;
+        try {
+            realPath = await Deno.realPath(rootDir + subDir);
+            isDir = await isDirectory(realPath);
+        } catch ( error: any ) {
+            realPath = "";
+            isDir = false;
+        }
+        if ( isDir === false ) {
+            console.error("ERROR: no such directory:", rootDir + subDir);
+            Deno.exit(1);
+        }
+        
+        if ( working_directory !== realPath ) {
+            console.error("ERROR: current directory differs from:", rootDir + subDir);
+            Deno.exit(1);
+        }
+        
+        pathInfo = {
+            project_root_directory: rootDir, // always ends with a directory-separator.
+            working_subdirectory: subDir, // is either empty, or ends with a directory-separator.
+        };
+    } */
     
     const piResult: _PathInfoResult = {
-        path_info: null,
+        path_info: pathInfo,
         working_directory: working_directory,
     };
     return piResult;
+}
+
+// https://docs.deno.com/examples/checking_directory_existence/ 
+async function isDirectory(path: string): Promise<boolean> {
+    try {
+        const fileInfo = await Deno.lstat(path);
+        if ( fileInfo.isSymlink ) return false; // ignore symlinks!
+        return fileInfo.isDirectory;
+    } catch ( error: any ) {
+        // the "not-found" case should be already covered by Deno.realPath().
+        if ( error instanceof Deno.errors.NotFound === false ) {
+            throw error;
+        }
+        return false;
+    }
 }
 

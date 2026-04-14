@@ -35,7 +35,9 @@ Steps for compiling and running batchAiAgent (using _batch_test01 example as the
 - ./check.sh
 - ./run.sh
 
-Since deno supports compilation of programs to native apps, there is also script "chatAiAgent/server/compile_to_binary.sh" to do the compilation (it's quite similar to the run.sh script).
+Since deno supports compilation of programs to native apps, there is also an example script "chatAiAgent/server/compile_to_binary.sh" about how to do the compilation (it's quite similar in content to the run.sh script).
+
+Deno also supports detailed security permissions, which you can set in run/compilation scripts. Permissions include file read and write access, network access and access to run external program, and all of these allow fine-grained specifications. More about this [here](https://docs.deno.com/runtime/fundamentals/security/).
 
 The programs have been tested using Linux OS and llama.cpp AI server.
 
@@ -57,5 +59,5 @@ NOTE-2: the tool for writing to files is not allowed by default: you have to cha
 NOTE-3: in batchAiAgent only /tools-allow and /tools-deny tools are usable (and /clear tool functionality is replaced using a direct function call).
 
 Related resources:
-- https://gist.github.com/philipp-meier/678a4679d0895276f270fac4c046ad14 : OpenAI function calling example
+- https://gist.github.com/philipp-meier/678a4679d0895276f270fac4c046ad14 : OpenAI function calling example.
 

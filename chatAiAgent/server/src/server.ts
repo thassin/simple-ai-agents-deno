@@ -356,13 +356,13 @@ async function setupPathInfo(): Promise<_ConfigPathInfo|null> {
                 }
                 
                 let subdir = working_directory.replace(finalRootDir, "");
-//////////////////////////////////////////////////////////////////////////////SIIVOO_POIS
+///////////////////////////////////////////////////////////////////////////////
 /* if ( subdir.startsWith("/") ) {        NOT NEEDED...
     // usually the subdir starts with a slash, which we need to remove.
     // => the only exception is when subdir is empty.
     subdir = subdir.substring(1);
 } */
-//////////////////////////////////////////////////////////////////////////////SIIVOO_POIS
+///////////////////////////////////////////////////////////////////////////////
                 if ( subdir !== "" && subdir.endsWith("/") === false ) {
                     // usually we need to append a final directory-separator to subdir.
                     // => the only exception is when subdir is empty.
@@ -414,13 +414,13 @@ async function setupPathInfo(): Promise<_ConfigPathInfo|null> {
         }
         
         let subdir = working_directory.replace(finalRootDir, "");
-//////////////////////////////////////////////////////////////////////////////SIIVOO_POIS
+///////////////////////////////////////////////////////////////////////////////
 /* if ( subdir.startsWith("/") ) {        NOT NEEDED...
     // usually the subdir starts with a slash, which we need to remove.
     // => the only exception is when subdir is empty.
     subdir = subdir.substring(1);
 } */
-//////////////////////////////////////////////////////////////////////////////SIIVOO_POIS
+///////////////////////////////////////////////////////////////////////////////
         if ( subdir !== "" && subdir.endsWith("/") === false ) {
             // usually we need to append a final directory-separator to subdir.
             // => the only exception is when subdir is empty.
