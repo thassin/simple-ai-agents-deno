@@ -111,10 +111,13 @@ export function clearEverything() {
         content: currentTools.system_prompt,
         tool_calls: undefined,
         tool_call_id: undefined,
-        timings: null,
+        timings2: null,
+        t_prompt_n: -1, // initialized to -1, final value from timings.
+        t_predicted_n: -1, // initialized to -1, final value from timings.
         errorMessages: null,
         stopped: false,
-        tool_call_info: "",
+        tool_call_info1: undefined,
+        tool_call_info2: undefined,
     });
     
     // refresh the UI.
@@ -141,10 +144,13 @@ function addToPendingMessages(role: Role, content: string, continueUpdatesToActi
         content: content,
         tool_calls: undefined,
         tool_call_id: undefined,
-        timings: null,
+        timings2: null,
+        t_prompt_n: -1, // initialized to -1, final value from timings.
+        t_predicted_n: -1, // initialized to -1, final value from timings.
         errorMessages: null,
         stopped: false,
-        tool_call_info: "",
+        tool_call_info1: undefined,
+        tool_call_info2: undefined,
     };
     pendingMessages.push(message);
     
@@ -238,8 +244,11 @@ export async function handleSubmit(prompt: string) {
         
         
         
+        const timings: string|null = resp.timings1;
+        const t_prompt_n: number = resp.t_prompt_n;
+        const t_predicted_n: number = resp.t_predicted_n;
+        
         let isNormalResponse = true;
-        let timings: string|null = resp.timings;
         let errorMessage: string|null = resp.errorMessage;
         
         if ( stopButtonClickedDuringPOST ) isNormalResponse = false;
@@ -257,7 +266,11 @@ export async function handleSubmit(prompt: string) {
             // => then just update the timings -record of the message.
             const _lastItemIndex = pendingMessages.length - 1;
             const activeMessage: _UI_Message = pendingMessages[_lastItemIndex];
-            activeMessage.timings = timings;
+            
+            activeMessage.timings2 = timings;
+            activeMessage.t_prompt_n = t_prompt_n;
+            activeMessage.t_predicted_n = t_predicted_n;
+            
             refreshActiveMessage();
         }
         
@@ -276,9 +289,14 @@ export async function handleSubmit(prompt: string) {
                 // => then update timings + errorMessages AND set stopped -flag.
                 const _lastItemIndex = pendingMessages.length - 1;
                 const activeMessage: _UI_Message = pendingMessages[_lastItemIndex];
-                activeMessage.timings = timings;
+                
+                activeMessage.timings2 = timings;
+                activeMessage.t_prompt_n = t_prompt_n;
+                activeMessage.t_predicted_n = t_predicted_n;
+                
                 activeMessage.errorMessages = errorMessage;
                 activeMessage.stopped = true;
+                
                 refreshActiveMessage();
                 
                 // skip the UI-related part here.
@@ -372,6 +390,7 @@ export async function handleSubmit(prompt: string) {
                         tool_call_id = ""; // should never happen...
                     }
                     
+                    let toolCallSuccessful = false;
                     let func_name = tc.function.name;
                     if ( func_name == null || func_name.trim() === "" ) {
                         console.error("ERROR: tool_call: function name missing:", func_name);
@@ -399,7 +418,8 @@ export async function handleSubmit(prompt: string) {
                         //activeMessage.role = Role.Tool; // NOTICE this is NOT CHANGING, is "tool" already.
                         activeMessage.content = content; // this is always empty at this stage (tool-call being prepared).
                         activeMessage.tool_call_id = tool_call_id;
-                        activeMessage.tool_call_info = desc;
+                        activeMessage.tool_call_info1 = desc;
+                        // NOTICE activeMessage.tool_call_info2 remains unchanged (just preparing the call now).
                         refreshActiveMessage();
                         
                         
@@ -410,6 +430,7 @@ export async function handleSubmit(prompt: string) {
                                 // @ts-ignore : when success is true, result is a string (see isValidAgentToolResult()).
                                 content = resp.result;
                                 desc += config.ui_const_ok + resp.ui_desc;
+                                toolCallSuccessful = true;
                             } else {
                                 console.error("ERROR: tool_call: ", resp.error);
                                 content = config.ui_const_err + resp.error;
@@ -432,7 +453,8 @@ export async function handleSubmit(prompt: string) {
                     //activeMessage.role = Role.Tool; // NOTICE this is NOT CHANGING, is "tool" already.
                     activeMessage.content = content; // set content => this will end up to AI use.
                     activeMessage.tool_call_id = tool_call_id; // field stays unset if errors?!?
-                    activeMessage.tool_call_info = desc;
+                    activeMessage.tool_call_info1 = desc;
+                    activeMessage.tool_call_info2 = toolCallSuccessful;
                     refreshActiveMessage();
                     
                     

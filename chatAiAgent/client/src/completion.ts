@@ -41,7 +41,10 @@ export interface _ChatPostResponse {
     newToolCalls: Array<_OaiApi_v1ChatCompletionResponse_ToolCall>,
     tokenLimitReached: boolean,
     errorMessage: string|null,
-    timings: string|null,
+    
+    timings1: string|null,
+    t_prompt_n: number; // initialized to -1, final value from timings.
+    t_predicted_n: number; // initialized to -1, final value from timings.
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,11 +61,15 @@ export interface _UI_Message { // vrt _OaiApi_v1ChatCompletionRequest_MessagePar
     // the fields below are the application's own extra information related to the UI.
     // => see the function createCopy() which drops the extra fields from copy result.
     
-    timings: string|null,
+    timings2: string|null,
+    t_prompt_n: number; // initialized to -1, final value from timings.
+    t_predicted_n: number; // initialized to -1, final value from timings.
+    
     errorMessages: string|null, // set if an an error occurred (AND ALSO the stopped -flag is set).
     stopped: boolean; // set if the user pressed STOP-button in streaming-mode (OR an error occurred).
     
-    tool_call_info: string; // tool-call result as shown in UI (set when role=tool).
+    tool_call_info1: string|undefined; // tool-call result as shown in UI (set when role=tool).
+    tool_call_info2: boolean|undefined; // tool-call success flag (set when role=tool).
 };
 
 export function createCopy(message: _UI_Message): _OaiApi_v1ChatCompletionRequest_MessageParam {

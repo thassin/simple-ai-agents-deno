@@ -29,7 +29,10 @@ export async function handlePost_buffered(postData: _OaiApi_v1ChatCompletionRequ
     
     let tokenLimitReached: boolean = false;
     let errorMessage: string|null = null;
+    
     let timings: string|null = null;
+    let t_prompt_n: number = -1; // initialized to -1, final value from timings.
+    let t_predicted_n: number = -1; // initialized to -1, final value from timings.
     
     try {
         // abort if connection is not about to start, but without limiting connection length.
@@ -137,7 +140,8 @@ if ( c.index !== 0 ) console.error("found SPECIAL c.index:", c); // never happen
                             timings += "(generated " + resp.timings.predicted_n + " tok in ";
                             timings += (0.001 * resp.timings.predicted_ms).toFixed(digits) + " sec => ";
                             timings += resp.timings.predicted_per_second.toFixed(digits) + " t/s)";
-//console.log(timings);
+                            t_prompt_n = resp.timings.prompt_n;
+                            t_predicted_n = resp.timings.predicted_n;
                         }
                     }
                 }
@@ -166,7 +170,9 @@ if ( c.index !== 0 ) console.error("found SPECIAL c.index:", c); // never happen
         newToolCalls: toolCalls,
         tokenLimitReached: tokenLimitReached,
         errorMessage: errorMessage,
-        timings: timings,
+        timings1: timings,
+        t_prompt_n: t_prompt_n,
+        t_predicted_n: t_predicted_n,
     };
     return resp;
 }

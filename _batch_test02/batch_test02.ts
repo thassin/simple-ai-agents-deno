@@ -1,6 +1,6 @@
 
 import {
-    init, clearEverything, handleCommand, handleSubmit, completedMessages
+    init, clearEverything, handleCommand, handleSubmit, completedMessages, Role,
 } from "batch_ai_agent/batch.ts";
 
 await init();
@@ -24,6 +24,49 @@ As a last step, use write_file tool to save the translation to a local file: "./
 
 await handleSubmit(prompt);
 
-console.log("PRINTING OUT ALL MESSAGES:");
-console.log(completedMessages);
+//console.log("PRINTING OUT ALL MESSAGES:");
+//console.log(completedMessages);
+
+let toolCallTotalCount = 0;
+let toolCallErrorCount = 0;
+let toolCallEvents: Array<string> = new Array<string>();
+
+for ( const message of completedMessages ) {
+    if ( message.role !== Role.Tool ) continue;
+    toolCallTotalCount++;
+    
+    if ( message.tool_call_info2 !== true ) {
+        toolCallErrorCount++;
+    }
+    
+    const info: string = message.tool_call_info1 ?? "";
+    toolCallEvents.push(info.trim());
+}
+
+let lastAssistantResponse = "";
+let lastResponse_totalTokenCount = -1;
+if ( completedMessages.length > 0 ) {
+    const lastMessage = completedMessages[completedMessages.length - 1];
+    if ( lastMessage.role === Role.Assistant ) {
+        lastAssistantResponse = lastMessage.content;
+        lastResponse_totalTokenCount = lastMessage.t_prompt_n + lastMessage.t_predicted_n;
+        if ( lastResponse_totalTokenCount < 0 ) lastResponse_totalTokenCount = 0;
+    }
+}
+
+console.log();
+console.log("TOOL-CALLING SUMMARY: totalCount=" + toolCallTotalCount + " errorCount=" + toolCallErrorCount);
+if ( toolCallEvents.length > 0 ) {
+    console.log("TOOL-CALLING EVENTS:");
+    for ( let i = 0; i < toolCallEvents.length; i++ ) {
+        console.log("    EVENT-" + i + ":");
+        console.log(toolCallEvents[i]);
+        console.log();
+    }
+} else {
+    console.log();
+}
+
+console.log("LAST RESPONSE CONTENTS:    (total tokens used = " + lastResponse_totalTokenCount + ")");
+console.log(lastAssistantResponse);
 

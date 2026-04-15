@@ -64,7 +64,9 @@ export function clearEverything() {
     completedMessages.push({
         role: Role.System,
         content: "You are a helpful assistant.",
-        timings: null,
+        timings2: null,
+        t_prompt_n: -1, // initialized to -1, final value from timings.
+        t_predicted_n: -1, // initialized to -1, final value from timings.
         errorMessages: null,
         stopped: false,
     });
@@ -139,7 +141,9 @@ function addToPendingMessages(role: Role, content: string, continueUpdatesToActi
     let message: _UI_Message = {
         role: role,
         content: content,
-        timings: null,
+        timings2: null,
+        t_prompt_n: -1, // initialized to -1, final value from timings.
+        t_predicted_n: -1, // initialized to -1, final value from timings.
         errorMessages: null,
         stopped: false,
     };
@@ -234,8 +238,11 @@ async function handleSubmit() {
         
         
         
+        const timings: string|null = resp.timings1;
+        const t_prompt_n: number = resp.t_prompt_n;
+        const t_predicted_n: number = resp.t_predicted_n;
+        
         let isNormalResponse = true;
-        let timings: string|null = resp.timings;
         let errorMessage: string|null = resp.errorMessage;
         
         if ( stopButtonClickedDuringPOST ) isNormalResponse = false;
@@ -253,7 +260,11 @@ async function handleSubmit() {
             // => then just update the timings -record of the message.
             const _lastItemIndex = pendingMessages.length - 1;
             const activeMessage: _UI_Message = pendingMessages[_lastItemIndex];
-            activeMessage.timings = timings;
+            
+            activeMessage.timings2 = timings;
+            activeMessage.t_prompt_n = t_prompt_n;
+            activeMessage.t_predicted_n = t_predicted_n;
+            
             refreshActiveMessage();
         }
         
@@ -272,9 +283,14 @@ async function handleSubmit() {
                 // => then update timings + errorMessages AND set stopped -flag.
                 const _lastItemIndex = pendingMessages.length - 1;
                 const activeMessage: _UI_Message = pendingMessages[_lastItemIndex];
-                activeMessage.timings = timings;
+                
+                activeMessage.timings2 = timings;
+                activeMessage.t_prompt_n = t_prompt_n;
+                activeMessage.t_predicted_n = t_predicted_n;
+                
                 activeMessage.errorMessages = errorMessage;
                 activeMessage.stopped = true;
+                
                 refreshActiveMessage();
                 
                 // in HTML find the element with "is-active-message" class, then:
@@ -306,8 +322,6 @@ console.error("ERR: activeMessage not found: line463 case1b");
                 console.error("should never happen!!!");
             }
         }
-        
-        
         
         
         
@@ -430,9 +444,9 @@ export async function refreshActiveMessage() {
     // also see: addToMessagesUI() and appendContentsToActiveMessage().
     
     let role: string = activeMessage.role.toString();
-    if ( activeMessage.timings != null ) {
+    if ( activeMessage.timings2 != null ) {
         // print additional request statistics to infoLine.
-        role += "    " + activeMessage.timings;
+        role += "    " + activeMessage.timings2;
     }
     
     let content: string = activeMessage.content;

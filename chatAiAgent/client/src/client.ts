@@ -142,10 +142,13 @@ export function clearEverything() {
         content: currentTools.system_prompt,
         tool_calls: undefined,
         tool_call_id: undefined,
-        timings: null,
+        timings2: null,
+        t_prompt_n: -1, // initialized to -1, final value from timings.
+        t_predicted_n: -1, // initialized to -1, final value from timings.
         errorMessages: null,
         stopped: false,
-        tool_call_info: "",
+        tool_call_info1: undefined,
+        tool_call_info2: undefined,
     });
     
     // refresh the UI.
@@ -221,10 +224,13 @@ function addToPendingMessages(role: Role, content: string, continueUpdatesToActi
         content: content,
         tool_calls: undefined,
         tool_call_id: undefined,
-        timings: null,
+        timings2: null,
+        t_prompt_n: -1, // initialized to -1, final value from timings.
+        t_predicted_n: -1, // initialized to -1, final value from timings.
         errorMessages: null,
         stopped: false,
-        tool_call_info: "",
+        tool_call_info1: undefined,
+        tool_call_info2: undefined,
     };
     pendingMessages.push(message);
     
@@ -303,10 +309,13 @@ async function handleSubmit() {
             content: prompt,
             tool_calls: undefined,
             tool_call_id: undefined,
-            timings: null,
+            timings2: null,
+            t_prompt_n: -1, // initialized to -1, final value from timings.
+            t_predicted_n: -1, // initialized to -1, final value from timings.
             errorMessages: null,
             stopped: false,
-            tool_call_info: "",
+            tool_call_info1: undefined,
+            tool_call_info2: undefined,
         };
         completedMessages.push(message);
         
@@ -406,8 +415,11 @@ async function handleSubmit() {
         
         
         
+        const timings: string|null = resp.timings1;
+        const t_prompt_n: number = resp.t_prompt_n;
+        const t_predicted_n: number = resp.t_predicted_n;
+        
         let isNormalResponse = true;
-        let timings: string|null = resp.timings;
         let errorMessage: string|null = resp.errorMessage;
         
         if ( stopButtonClickedDuringPOST ) isNormalResponse = false;
@@ -425,7 +437,11 @@ async function handleSubmit() {
             // => then just update the timings -record of the message.
             const _lastItemIndex = pendingMessages.length - 1;
             const activeMessage: _UI_Message = pendingMessages[_lastItemIndex];
-            activeMessage.timings = timings;
+            
+            activeMessage.timings2 = timings;
+            activeMessage.t_prompt_n = t_prompt_n;
+            activeMessage.t_predicted_n = t_predicted_n;
+            
             refreshActiveMessage();
         }
         
@@ -444,9 +460,14 @@ async function handleSubmit() {
                 // => then update timings + errorMessages AND set stopped -flag.
                 const _lastItemIndex = pendingMessages.length - 1;
                 const activeMessage: _UI_Message = pendingMessages[_lastItemIndex];
-                activeMessage.timings = timings;
+                
+                activeMessage.timings2 = timings;
+                activeMessage.t_prompt_n = t_prompt_n;
+                activeMessage.t_predicted_n = t_predicted_n;
+                
                 activeMessage.errorMessages = errorMessage;
                 activeMessage.stopped = true;
+                
                 refreshActiveMessage();
                 
                 // in HTML find the element with "is-active-message" class, then:
@@ -561,6 +582,7 @@ console.error("ERR: activeMessage not found: line535 case3a", stopButtonClickedD
                         tool_call_id = ""; // should never happen...
                     }
                     
+                    let toolCallSuccessful = false;
                     let func_name = tc.function.name;
                     if ( func_name == null || func_name.trim() === "" ) {
                         console.error("ERROR: tool_call: function name missing:", func_name);
@@ -588,7 +610,8 @@ console.error("ERR: activeMessage not found: line535 case3a", stopButtonClickedD
                         //activeMessage.role = Role.Tool; // NOTICE this is NOT CHANGING, is "tool" already.
                         activeMessage.content = content; // this is always empty at this stage (tool-call being prepared).
                         activeMessage.tool_call_id = tool_call_id;
-                        activeMessage.tool_call_info = desc;
+                        activeMessage.tool_call_info1 = desc;
+                        // NOTICE activeMessage.tool_call_info2 remains unchanged (just preparing the call now).
                         refreshActiveMessage();
                         
                         
@@ -620,6 +643,7 @@ console.error("ERR: activeMessage not found: line535 case3a", stopButtonClickedD
                                         // @ts-ignore : when success is true, result is a string (see isValidAgentToolResult()).
                                         content = resp.result;
                                         desc += config.ui_const_ok + resp.ui_desc;
+                                        toolCallSuccessful = true;
                                     } else {
                                         console.error("ERROR: tool_call: ", resp.error);
                                         content = config.ui_const_err + resp.error;
@@ -648,7 +672,8 @@ console.error("ERR: activeMessage not found: line535 case3a", stopButtonClickedD
                     //activeMessage.role = Role.Tool; // NOTICE this is NOT CHANGING, is "tool" already.
                     activeMessage.content = content; // set content => this will end up to AI use.
                     activeMessage.tool_call_id = tool_call_id; // field stays unset if errors?!?
-                    activeMessage.tool_call_info = desc;
+                    activeMessage.tool_call_info1 = desc;
+                    activeMessage.tool_call_info2 = toolCallSuccessful;
                     refreshActiveMessage();
                     
                     
@@ -801,9 +826,9 @@ export async function refreshActiveMessage() {
     // also see: addToMessagesUI() and appendContentsToActiveMessage().
     
     let role: string = activeMessage.role.toString();
-    if ( activeMessage.timings != null ) {
+    if ( activeMessage.timings2 != null ) {
         // print additional request statistics to infoLine.
-        role += "    " + activeMessage.timings;
+        role += "    " + activeMessage.timings2;
     }
     
     let content: string = activeMessage.content;
@@ -814,7 +839,7 @@ export async function refreshActiveMessage() {
     
     // if this is a tool-call message, show a different visible content.
     // => show prepared tool_call_info content, instead of raw tool-call data content.
-    if ( role === Role.Tool ) content = activeMessage.tool_call_info;
+    if ( role === Role.Tool ) content = activeMessage.tool_call_info1 ?? "<unset>";
     
     // using a PRE-element is fine otherwise, but XML-like formatting fails.
     // => need to replace "<" and ">" -characters to "&lt;" and "&gt;" in the content.

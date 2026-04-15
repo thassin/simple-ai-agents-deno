@@ -25,7 +25,10 @@ export enum FinishReason {
 export interface _ChatPostResponse {
     tokenLimitReached: boolean,
     errorMessage: string|null,
-    timings: string|null,
+    
+    timings1: string|null,
+    t_prompt_n: number; // initialized to -1, final value from timings.
+    t_predicted_n: number; // initialized to -1, final value from timings.
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,7 +42,10 @@ export interface _UI_Message { // vrt _OaiApi_v1ChatCompletionRequest_MessagePar
     // the fields below are the application's own extra information related to the UI.
     // => see the function createCopy() which drops the extra fields from copy result.
     
-    timings: string|null,
+    timings2: string|null,
+    t_prompt_n: number; // initialized to -1, final value from timings.
+    t_predicted_n: number; // initialized to -1, final value from timings.
+    
     errorMessages: string|null, // set if an an error occurred (AND ALSO the stopped -flag is set).
     stopped: boolean; // set if the user pressed STOP-button in streaming-mode (OR an error occurred).
 };

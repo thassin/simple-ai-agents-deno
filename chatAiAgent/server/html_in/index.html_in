@@ -24,7 +24,7 @@
             background-color: tomato;
         }
         
-        /* for assistant/tool messages which may be updated (by tool-call or by streaming). */
+        /* for assistant/tool messages which may be updated (by tool-call OR by streaming). */
         .assistant.is-active-message {
             background-color: lightgray;
         }
@@ -32,7 +32,7 @@
             background-color: lightgray;
         }
         
-        /* for assistant/tool messages which were truncated by a STOP-button-click OR if an error occurred. */
+        /* for assistant/tool messages which were truncated (by a STOP-button-click OR if an error occurred). */
         .assistant.is-truncated-or-error {
             background-color: orange;
         }
