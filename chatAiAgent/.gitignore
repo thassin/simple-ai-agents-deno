@@ -1,5 +1,6 @@
 
 client/deno.lock
 server/deno.lock
+server/html_final/html.ts
 server/html_in/client.js
 
