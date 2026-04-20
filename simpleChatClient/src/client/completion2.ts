@@ -65,6 +65,7 @@ export async function handlePost_streaming(postData: _OaiApi_v1ChatCompletionReq
             //console.log("    ----    LINECOUNT = " + lines.length);
             
             let newMessageContent = "";
+            let newReasoningContent = "";
             
             for ( const nextline of lines ) {
                 let line = nextline.trim();
@@ -111,6 +112,10 @@ if ( c.index !== 0 ) console.error("found SPECIAL c.index:", c); // never happen
                                 if ( content != null ) {
                                     newMessageContent += content;
                                 }
+                                let reasoningContent = c.delta.reasoning_content;
+                                if ( reasoningContent != null ) {
+                                    newReasoningContent += reasoningContent;
+                                }
                             }
                             
                             else if ( reason === FinishReason.Stop ) {
@@ -153,7 +158,7 @@ if ( c.index !== 0 ) console.error("found SPECIAL c.index:", c); // never happen
                 }
             }
             
-            appendContentsToActiveMessage(newMessageContent);
+            appendContentsToActiveMessage(newMessageContent, newReasoningContent);
         }
     } catch ( e: any ) {
         if ( typeof errorMessage === "string" ) errorMessage += "\n"; // prepare...

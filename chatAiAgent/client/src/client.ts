@@ -1,6 +1,7 @@
 
 import {
     isObject, isArray, isString,
+    ReasoningFormat, ReasoningEffort,
     _LogRequest, _CommandResult,
     _ConfigResponse, isValidConfigResponse,
     _ToolsResponse, isValidToolsResponse,
@@ -140,6 +141,7 @@ export function clearEverything() {
     completedMessages.push({
         role: Role.System,
         content: currentTools.system_prompt,
+        reasoningContent: null,
         tool_calls: undefined,
         tool_call_id: undefined,
         timings2: null,
@@ -202,18 +204,28 @@ function addToMessagesUI(message: _UI_Message, continueUpdatesToActiveMessage: b
     content = content.replace(/</g, "&lt;"); // fix XML and similar formats...
     content = content.replace(/>/g, "&gt;"); // fix XML and similar formats...
     
+    const infoLine = "role: " + message.role + "\n";
+    // => NOTICE: later we may print additional request statistics to infoLine.
+    // => see function: refreshActiveMessage() where message formatting may be updated.
+    
+    let reasoning = "";
+    if ( message.reasoningContent != null ) {
+        reasoning += "<i>[THINK]\n"; // show the reasoning in italic style.
+        reasoning += message.reasoningContent + "\n";
+        reasoning += "[/THINK]</i>\n";
+    }
+    
     let classes: string = message.role;
     if ( message.stopped ) classes += " " + isTruncatedOrError_CLASS;
     if ( continueUpdatesToActiveMessage ) classes += " " + isActiveMessage_CLASS;
     
+    const updatedMessageContent = infoLine + reasoning + content;
+    
     let html = "";
     html += '<pre class="' + classes + '">';
-    // the info-line.
-    // => NOTICE: later we may print additional request statistics to infoLine.
-    // => see function: refreshActiveMessage() where message formatting may be updated.
-    html += "role: " + message.role + "\n";
-    // actual message contents.
-    html += content + "</pre>";
+    html += updatedMessageContent;
+    html += "</pre>";
+    
     el_messages.innerHTML += html;
 }
 
@@ -222,6 +234,7 @@ function addToPendingMessages(role: Role, content: string, continueUpdatesToActi
     let message: _UI_Message = {
         role: role,
         content: content,
+        reasoningContent: null,
         tool_calls: undefined,
         tool_call_id: undefined,
         timings2: null,
@@ -307,6 +320,7 @@ async function handleSubmit() {
         let message: _UI_Message = {
             role: Role.Command,
             content: prompt,
+            reasoningContent: null,
             tool_calls: undefined,
             tool_call_id: undefined,
             timings2: null,
@@ -378,12 +392,26 @@ async function handleSubmit() {
         // => if there is anything in pendingToolCalls, use it as a queue and send next tool call result.
         // => otherwise send a normal chat request. ALSO after tool calls, send one normal chat request.
         
+        let re: ReasoningEffort|undefined = undefined;
+        let rf: ReasoningFormat|undefined = undefined;
+        if ( config.llama_reasoning_effort !== ReasoningEffort.None ) {
+            re = config.llama_reasoning_effort;
+            rf = ReasoningFormat.DeepSeek; // use a separate field for reasoning content.
+        }
+        
         const postData: _OaiApi_v1ChatCompletionRequest = {
-            cache_prompt: false, // TODO miten tämä vaikuttaa?!? olisko parempi olla FALSE? vrt "store".
             messages: allMessages,
+            
+            // TODO model setting?!?
             temperature: config.llama_temperature,
-            store: false,
+            reasoning_effort: re,
+            reasoning_format: rf,
+            
             stream: config.use_streaming,
+            
+            cache_prompt: false, // TODO how affects really?!?
+            store: false, // TODO how affects really?!?
+            
             tools: undefined,
             tool_choice: undefined,
 // TODO: blocking parallel_tool_calls use here because THIS IS AN UNTESTED FEATURE.
@@ -779,7 +807,7 @@ function onCancelButtonClicked() {
     }
 }
 
-export async function appendContentsToActiveMessage(newMessageContent: string) {
+export async function appendContentsToActiveMessage(newMessageContent: string, newReasoningContent: string) {
     // now we need to update the given content to:
     //    1) pendingMessages information (always the LAST record in the array).
     //    2) UI information (see activeMessageSelector).
@@ -788,6 +816,11 @@ export async function appendContentsToActiveMessage(newMessageContent: string) {
     const activeMessage: _UI_Message = pendingMessages[_lastItemIndex];
     
     activeMessage.content += newMessageContent;
+    
+    if ( newReasoningContent !== "" ) {
+        if ( activeMessage.reasoningContent == null ) activeMessage.reasoningContent = "";
+        activeMessage.reasoningContent += newReasoningContent;
+    }
     
     // UPDATE message formatting as HTML:
     //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -804,7 +837,15 @@ export async function appendContentsToActiveMessage(newMessageContent: string) {
     const infoLine = "role: " + role + "\n";
     // => NOTICE: later we may print additional request statistics to infoLine.
     // => see function: refreshActiveMessage() where message formatting may be updated.
-    const updatedMessageContent = infoLine + content;
+    
+    let reasoning = "";
+    if ( activeMessage.reasoningContent != null ) {
+        reasoning += "<i>[THINK]\n"; // show the reasoning in italic style.
+        reasoning += activeMessage.reasoningContent + "\n";
+        reasoning += "[/THINK]</i>\n";
+    }
+    
+    const updatedMessageContent = infoLine + reasoning + content;
     
     let el_pre = document.querySelector(activeMessageSelector);
     if ( el_pre != null ) {
@@ -847,7 +888,17 @@ export async function refreshActiveMessage() {
     content = content.replace(/>/g, "&gt;"); // fix XML and similar formats...
     
     const infoLine = "role: " + role + "\n";
-    const updatedMessageContent = infoLine + content;
+    // => NOTICE: later we may print additional request statistics to infoLine.
+    // => see function: refreshActiveMessage() where message formatting may be updated.
+    
+    let reasoning = "";
+    if ( activeMessage.reasoningContent != null ) {
+        reasoning += "<i>[THINK]\n"; // show the reasoning in italic style.
+        reasoning += activeMessage.reasoningContent + "\n";
+        reasoning += "[/THINK]</i>\n";
+    }
+    
+    const updatedMessageContent = infoLine + reasoning + content;
     
     let el_pre = document.querySelector(activeMessageSelector);
     if ( el_pre != null ) {

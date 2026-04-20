@@ -1,6 +1,7 @@
 
 import {
     isObject, isArray,
+    ReasoningEffort, ReasoningFormat,
 } from "../shared/shared.ts";
 
 // messaging to llama.cpp server (or equivalent):
@@ -35,7 +36,9 @@ export interface _ChatPostResponse {
 
 export interface _UI_Message { // vrt _OaiApi_v1ChatCompletionRequest_MessageParam
     role: Role;
+    
     content: string;
+    reasoningContent: string|null;
     
     // the fields above are consistent with the _OaiApi_v1ChatCompletionRequest_MessageParam interface.
     
@@ -84,8 +87,8 @@ export interface _OaiApi_v1ChatCompletionRequest {
     store: boolean;
     stream: boolean;
     
-    // reasoning_format? TODO
-    // thinking_forced_open? TODO
+    reasoning_format: ReasoningFormat|undefined;
+    reasoning_effort: ReasoningEffort|undefined;
 }
 
 export interface _OaiApi_v1ChatCompletionRequest_MessageParam {
@@ -135,6 +138,7 @@ export interface _OaiApi_v1ChatCompletionResponse_Choice {
 
 export interface _OaiApi_v1ChatCompletionResponse_Message {
     role: Role;
+    reasoning_content: string|undefined;
     content: string|undefined; // either-or refusal
     refusal: string|undefined; // either-or content
 };
@@ -178,6 +182,7 @@ export interface _OaiApi_v1ChatCompletionStreamResponse_Choice {
 
 export interface _OaiApi_v1ChatCompletionStreamResponse_Delta {
     content: string|undefined;
+    reasoning_content: string|undefined;
 };
 
 export function isValidStreamResponse(obj: unknown): obj is _OaiApi_v1ChatCompletionStreamResponse {

@@ -130,7 +130,10 @@ if ( c.index !== 0 ) console.error("found SPECIAL c.index:", c); // never happen
                             }
                         }
                         
-                        appendContentsToActiveMessage(content);
+                        let reasoningContent = c.message.reasoning_content;
+                        if ( reasoningContent == null ) reasoningContent = "";
+                        
+                        appendContentsToActiveMessage(content, reasoningContent);
                         
                         if ( resp.timings != null ) {
                             const digits = 2;

@@ -1,6 +1,7 @@
 
 import {
     isObject, isArray,
+    ReasoningEffort, ReasoningFormat,
     _OaiApi_v1ChatCompletion_Tool,
 } from "../../shared/shared.ts";
 
@@ -51,7 +52,9 @@ export interface _ChatPostResponse {
 
 export interface _UI_Message { // vrt _OaiApi_v1ChatCompletionRequest_MessageParam
     role: Role;
+    
     content: string;
+    reasoningContent: string|null;
     
     tool_calls: Array<_OaiApi_v1ChatCompletionResponse_ToolCall>|undefined;
     tool_call_id: string|undefined;
@@ -108,8 +111,9 @@ export interface _OaiApi_v1ChatCompletionRequest {
     store: boolean;
     stream: boolean;
     
-    // reasoning_format? TODO
-    // thinking_forced_open? TODO
+    // TODO these are related to model and temperature...
+    reasoning_format: ReasoningFormat|undefined;
+    reasoning_effort: ReasoningEffort|undefined;
     
     tools: Array<_OaiApi_v1ChatCompletion_Tool>|undefined;
     tool_choice: ToolChoice|undefined;
@@ -167,6 +171,7 @@ export interface _OaiApi_v1ChatCompletionResponse_Choice {
 
 export interface _OaiApi_v1ChatCompletionResponse_Message {
     role: Role;
+    reasoning_content: string|undefined;
     content: string|undefined; // either-or refusal
     refusal: string|undefined; // either-or content
     
@@ -244,6 +249,7 @@ export interface _OaiApi_v1ChatCompletionStreamResponse_Choice {
 
 export interface _OaiApi_v1ChatCompletionStreamResponse_Delta {
     content: string|undefined;
+    reasoning_content: string|undefined;
     
     tool_calls: Array<_OaiApi_v1ChatCompletionResponse_ToolCall>|undefined;
 };

@@ -33,6 +33,25 @@ export function isBoolean(obj: unknown): boolean {
     return typeof obj === "boolean";
 }
 
+// reasoning-enums belong to completion-API, but need to declare them here,
+// since needed in _ConfigResponse (both in client and in server).
+
+export enum ReasoningEffort {
+    None = "none",
+    Minimal = "minimal",
+    Low = "low",
+    Medium = "medium",
+    High = "high",
+    XtraHigh = "xhigh",
+}
+
+export enum ReasoningFormat {
+    None = "none", // The model's reasoning (e.g., text between <think> tags) is treated as normal text and included directly in the content field. No special parsing is performed.
+    DeepSeek = "deepseek", // The server parses the reasoning chain and puts it into a separate reasoning_content field in the API response. This matches the standard used by DeepSeek and OpenAI's O1/O3 models.
+    //Hidden = "hidden", // The reasoning process is generated but stripped from the final output. The user only sees the final answer.
+    Auto = "auto", // The server attempts to automatically detect the correct format based on the model's chat template.
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 // app-local-server messaging:
@@ -59,7 +78,11 @@ export interface _ConfigResponse {
     ui_const_err: string;
     
     llama_api_url: string;
+    
+    // TODO these are related to model and temperature...
     llama_temperature: number;
+    llama_reasoning_effort: ReasoningEffort;
+    
     use_streaming: boolean;
     
     path_info: _ConfigPathInfo|null;

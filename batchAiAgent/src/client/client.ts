@@ -1,13 +1,14 @@
 
 import {
     AI_AGENT_NAME, AI_AGENT_VERSION, LONG_NAME, 
-    LLAMA_API_URL, LLAMA_TEMPERATURE,
+    LLAMA_API_URL, LLAMA_TEMPERATURE, LLAMA_REASONING_EFFORT,
     USE_STREAMING,
     PROJECT_README_FILENAME,
 } from "../config.ts";
 
 import {
     isObject, isArray, isString,
+    ReasoningFormat, ReasoningEffort,
     _LogRequest, _CommandResult,
     _ConfigResponse, _ConfigPathInfo, isValidConfigResponse,
     _ToolsResponse, isValidToolsResponse,
@@ -65,6 +66,7 @@ export async function init(): Promise<void> {
         ui_const_err: "ERROR: ",
         llama_api_url: LLAMA_API_URL,
         llama_temperature: LLAMA_TEMPERATURE,
+        llama_reasoning_effort: LLAMA_REASONING_EFFORT,
         use_streaming: USE_STREAMING,
         path_info: path_info,
         current_working_directory: working_directory,
@@ -109,6 +111,7 @@ export function clearEverything() {
     completedMessages.push({
         role: Role.System,
         content: currentTools.system_prompt,
+        reasoningContent: null,
         tool_calls: undefined,
         tool_call_id: undefined,
         timings2: null,
@@ -142,6 +145,7 @@ function addToPendingMessages(role: Role, content: string, continueUpdatesToActi
     let message: _UI_Message = {
         role: role,
         content: content,
+        reasoningContent: null,
         tool_calls: undefined,
         tool_call_id: undefined,
         timings2: null,
@@ -207,12 +211,26 @@ export async function handleSubmit(prompt: string) {
         // => if there is anything in pendingToolCalls, use it as a queue and send next tool call result.
         // => otherwise send a normal chat request. ALSO after tool calls, send one normal chat request.
         
+        let re: ReasoningEffort|undefined = undefined;
+        let rf: ReasoningFormat|undefined = undefined;
+        if ( config.llama_reasoning_effort !== ReasoningEffort.None ) {
+            re = config.llama_reasoning_effort;
+            rf = ReasoningFormat.DeepSeek; // use a separate field for reasoning content.
+        }
+        
         const postData: _OaiApi_v1ChatCompletionRequest = {
-            cache_prompt: false, // TODO miten tämä vaikuttaa?!? olisko parempi olla FALSE? vrt "store".
             messages: allMessages,
+            
+            // TODO model setting?!?
             temperature: config.llama_temperature,
-            store: false,
+            reasoning_effort: re,
+            reasoning_format: rf,
+            
             stream: config.use_streaming,
+            
+            cache_prompt: false, // TODO how affects really?!?
+            store: false, // TODO how affects really?!?
+            
             tools: undefined,
             tool_choice: undefined,
 // TODO: blocking parallel_tool_calls use here because THIS IS AN UNTESTED FEATURE.
@@ -505,7 +523,7 @@ export async function handleSubmit(prompt: string) {
     pendingMessages.length = 0;
 }
 
-export async function appendContentsToActiveMessage(newMessageContent: string) {
+export async function appendContentsToActiveMessage(newMessageContent: string, newReasoningContent: string) {
     // now we need to update the given content to:
     //    1) pendingMessages information (always the LAST record in the array).
     //    2) UI information (see activeMessageSelector).
@@ -514,6 +532,11 @@ export async function appendContentsToActiveMessage(newMessageContent: string) {
     const activeMessage: _UI_Message = pendingMessages[_lastItemIndex];
     
     activeMessage.content += newMessageContent;
+    
+    if ( newReasoningContent !== "" ) {
+        if ( activeMessage.reasoningContent == null ) activeMessage.reasoningContent = "";
+        activeMessage.reasoningContent += newReasoningContent;
+    }
     
     // skip the UI-related part here.
 }
@@ -563,12 +586,10 @@ async function setupPathInfo(): Promise<_PathInfoResult> {
     const working_directory: string = Deno.cwd();
     let pathInfo: _ConfigPathInfo|null = null;
     
-    // TODO not complete.
-    // => check if paths have been set using commandline arguments.
+    // check if paths have been set using commandline arguments.
     // => if not then set the current working directory only.
     // see parseArgs() at chatAiAgent/server/src/server.ts
     
-    /* try something like this?!?
     const OPT_RD_1 = "-rd";
     const OPT_RD_2 = "--root-dir";
     
@@ -646,7 +667,7 @@ async function setupPathInfo(): Promise<_PathInfoResult> {
             project_root_directory: rootDir, // always ends with a directory-separator.
             working_subdirectory: subDir, // is either empty, or ends with a directory-separator.
         };
-    } */
+    }
     
     const piResult: _PathInfoResult = {
         path_info: pathInfo,

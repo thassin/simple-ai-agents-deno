@@ -1,6 +1,15 @@
 
-import { _ConfigPathInfo } from "../shared/shared.ts";
-import { PROJECT_README_FILENAME, PROJECT_AGENTS_FILENAME } from "../config.ts";
+import {
+    ReasoningEffort,
+    _ConfigPathInfo,
+} from "../shared/shared.ts";
+
+import {
+    LLAMA_REASONING_EFFORT,
+    PROJECT_README_FILENAME,
+    PROJECT_AGENTS_FILENAME,
+} from "../config.ts";
+
 import { getActiveTools } from "./tools.ts";
 
 export async function getSystemPrompt(path_info: _ConfigPathInfo|null): Promise<string> {
@@ -143,16 +152,26 @@ toolsSection += "If instructed to write data to a file, it is safe to proceed, w
     
     let endSection = "";
     // TODO tartteeko mitään tällaista?!? onhan tämä kuitenkin siellä "system" osiossa ja siksi erillinen juttu?!?
-    endSection += "End of project introduction.";
+    endSection += "End of project introduction.\n\n";
     
+    let reasoning = "";
+    if ( LLAMA_REASONING_EFFORT !== ReasoningEffort.None ) {
+        // about reasoning:
+        // (don't know about others but at least) Ministral-3 needs certain prompt content to enable reasoning.
+        // https://huggingface.co/mistralai/Ministral-3-14B-Reasoning-2512/discussions/1 
+        reasoning += "# HOW YOU SHOULD THINK AND ANSWER:\n";
+        reasoning += "First draft your thinking process (inner monologue) until you arrive at a response.\n";
+        reasoning += "Format your response using Markdown, and use LaTeX for any mathematical equations.\n";
+        reasoning += "Write both your thoughts and the response in the same language as the input.\n";
+        reasoning += "Your thinking process must follow the template below:\n";
+        reasoning += "[THINK]\n";
+        reasoning += "Your thoughts or/and draft, like working through an exercise on scratch paper.\n";
+        reasoning += "Be as casual and as long as you want until you are confident to generate the response to the user.\n";
+        reasoning += "[/THINK]\n";
+        reasoning += "Here, provide a self-contained response.\n\n";
+    }
     
-    ////////xxxxxxxxx tässä vielä se toinen merkintätapa...
-/*    const prompt = `
-Current date is: ${dateStr}.
-${introSection}${projectSection}${toolsSection}
-    `;*/ ////////xxxxx
-    
-    const prompt = introSection + projectSection + toolsSection + endSection;
+    const prompt = introSection + projectSection + toolsSection + endSection + reasoning;
     return prompt.trim();
 }
 

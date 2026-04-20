@@ -19,7 +19,7 @@ import {
 
 import {
     AI_AGENT_NAME, AI_AGENT_VERSION, LONG_NAME,
-    LLAMA_API_URL, LLAMA_TEMPERATURE,
+    LLAMA_API_URL, LLAMA_TEMPERATURE, LLAMA_REASONING_EFFORT,
     BROWSER, USE_STREAMING,
     PROJECT_README_FILENAME,
 } from "./config.ts";
@@ -46,6 +46,7 @@ const config: _ConfigResponse = {
     ui_const_err: "ERROR: ",
     llama_api_url: LLAMA_API_URL,
     llama_temperature: LLAMA_TEMPERATURE,
+    llama_reasoning_effort: LLAMA_REASONING_EFFORT,
     use_streaming: USE_STREAMING,
     path_info: path_info,
     current_working_directory: working_directory,
