@@ -44,11 +44,13 @@ for ( const message of completedMessages ) {
 }
 
 let lastAssistantResponse = "";
+let lastAssistantReasoning = "";
 let lastResponse_totalTokenCount = -1;
 if ( completedMessages.length > 0 ) {
     const lastMessage = completedMessages[completedMessages.length - 1];
     if ( lastMessage.role === Role.Assistant ) {
         lastAssistantResponse = lastMessage.content;
+        if ( lastMessage.reasoning_content != null ) lastAssistantReasoning = lastMessage.reasoning_content;
         lastResponse_totalTokenCount = lastMessage.t_prompt_n + lastMessage.t_predicted_n;
         if ( lastResponse_totalTokenCount < 0 ) lastResponse_totalTokenCount = 0;
     }
@@ -65,6 +67,11 @@ if ( toolCallEvents.length > 0 ) {
     }
 } else {
     console.log();
+}
+
+if ( lastAssistantReasoning !== "" ) {
+    console.log("LAST REASONING CONTENTS:");
+    console.log(lastAssistantReasoning);
 }
 
 console.log("LAST RESPONSE CONTENTS:    (total tokens used = " + lastResponse_totalTokenCount + ")");

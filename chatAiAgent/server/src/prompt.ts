@@ -114,8 +114,8 @@ export async function getSystemPrompt(path_info: _ConfigPathInfo|null): Promise<
             }
         }
     } else {
-        // tässä tapauksessa ei tartte kertoa poluista yhtikäs mitään.
-        projectSection += "\n"; // vähän vaan muotoilua.
+        // no need to tell anything about the paths is this case.
+        projectSection += "\n"; // add a bit formatting.
     }
     
     let toolsCount = 0;
@@ -156,19 +156,50 @@ toolsSection += "If instructed to write data to a file, it is safe to proceed, w
     
     let reasoning = "";
     if ( LLAMA_REASONING_EFFORT !== ReasoningEffort.None ) {
-        // about reasoning:
-        // (don't know about others but at least) Ministral-3 needs certain prompt content to enable reasoning.
+        
+        // 20260421 about reasoning:
+        // (not sure about others but at least) Ministral-3 needs certain prompt content to enable reasoning.
         // https://huggingface.co/mistralai/Ministral-3-14B-Reasoning-2512/discussions/1 
-        reasoning += "# HOW YOU SHOULD THINK AND ANSWER:\n";
+        // => TODO model settings unknown currently => can't detect Ministral-3 here.
+        
+        reasoning += "# HOW YOU SHOULD THINK AND ANSWER:\n\n";
         reasoning += "First draft your thinking process (inner monologue) until you arrive at a response.\n";
         reasoning += "Format your response using Markdown, and use LaTeX for any mathematical equations.\n";
-        reasoning += "Write both your thoughts and the response in the same language as the input.\n";
+        reasoning += "Write both your thoughts and the response in the same language as the input.\n\n";
         reasoning += "Your thinking process must follow the template below:\n";
         reasoning += "[THINK]\n";
         reasoning += "Your thoughts or/and draft, like working through an exercise on scratch paper.\n";
         reasoning += "Be as casual and as long as you want until you are confident to generate the response to the user.\n";
+        
+        // tool-calling related:
+        reasoning += "You can also sketch out tool calls here, but any generated json is just a draft, it will not execute the tool call.\n";
+        
         reasoning += "[/THINK]\n";
-        reasoning += "Here, provide a self-contained response.\n\n";
+        reasoning += "Here, provide a self-contained response.\n";
+        
+        // tool-calling related:
+        reasoning += "Generate final tool calls to be executed here, using the [TOOL_CALLS] section.\n";
+        
+// 20260421 combining reasoning with tool-calling seems not be staightforward?
+// => intended process may stop and/or required tool-calling steps may be omitted?!?
+
+// FOUND LATER A MISTAKE which caused loss of generated reasoning contents.
+// => so the additional instructions above may or may not help/affect (to be tested further later).
+
+// THE PROBLEM WAS LIKE THIS:
+// sometimes stuff like this is seen on reasoning-content side (while it should go to real-content side):
+// [TOOL_CALLS]read_file[ARGS]{"filepath": "./some_file.txt"}
+// [TOOL_CALLS]write_file[ARGS]{"filepath": "./some_file.txt", "content": "some_file_contents"}
+
+// also see:
+// https://huggingface.co/mistralai/Ministral-3-14B-Instruct-2512/blob/main/chat_template.jinja 
+// https://huggingface.co/mistralai/Ministral-3-14B-Reasoning-2512/blob/main/chat_template.jinja 
+
+        // one could also consider use of RAG (Retrieval-Augmented Generation) or Context Stuffing style?
+        // => especially if there is no need for AI to really decide on it's own which tool to use.
+        // => that would make data import/export less depedent on tool-calling-details of model.
+        
+        reasoning += "\n";
     }
     
     const prompt = introSection + projectSection + toolsSection + endSection + reasoning;

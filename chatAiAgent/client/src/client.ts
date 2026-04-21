@@ -140,8 +140,8 @@ export function clearEverything() {
     // add the system-prompt into completed messages.
     completedMessages.push({
         role: Role.System,
+        reasoning_content: undefined,
         content: currentTools.system_prompt,
-        reasoningContent: null,
         tool_calls: undefined,
         tool_call_id: undefined,
         timings2: null,
@@ -209,9 +209,9 @@ function addToMessagesUI(message: _UI_Message, continueUpdatesToActiveMessage: b
     // => see function: refreshActiveMessage() where message formatting may be updated.
     
     let reasoning = "";
-    if ( message.reasoningContent != null ) {
+    if ( message.reasoning_content != null ) {
         reasoning += "<i>[THINK]\n"; // show the reasoning in italic style.
-        reasoning += message.reasoningContent + "\n";
+        reasoning += message.reasoning_content + "\n";
         reasoning += "[/THINK]</i>\n";
     }
     
@@ -233,8 +233,8 @@ function addToPendingMessages(role: Role, content: string, continueUpdatesToActi
     // first add to messages cache.
     let message: _UI_Message = {
         role: role,
+        reasoning_content: undefined,
         content: content,
-        reasoningContent: null,
         tool_calls: undefined,
         tool_call_id: undefined,
         timings2: null,
@@ -319,8 +319,8 @@ async function handleSubmit() {
         // first add to messages cache.
         let message: _UI_Message = {
             role: Role.Command,
+            reasoning_content: undefined,
             content: prompt,
-            reasoningContent: null,
             tool_calls: undefined,
             tool_call_id: undefined,
             timings2: null,
@@ -818,8 +818,8 @@ export async function appendContentsToActiveMessage(newMessageContent: string, n
     activeMessage.content += newMessageContent;
     
     if ( newReasoningContent !== "" ) {
-        if ( activeMessage.reasoningContent == null ) activeMessage.reasoningContent = "";
-        activeMessage.reasoningContent += newReasoningContent;
+        if ( activeMessage.reasoning_content == null ) activeMessage.reasoning_content = "";
+        activeMessage.reasoning_content += newReasoningContent;
     }
     
     // UPDATE message formatting as HTML:
@@ -839,9 +839,9 @@ export async function appendContentsToActiveMessage(newMessageContent: string, n
     // => see function: refreshActiveMessage() where message formatting may be updated.
     
     let reasoning = "";
-    if ( activeMessage.reasoningContent != null ) {
+    if ( activeMessage.reasoning_content != null ) {
         reasoning += "<i>[THINK]\n"; // show the reasoning in italic style.
-        reasoning += activeMessage.reasoningContent + "\n";
+        reasoning += activeMessage.reasoning_content + "\n";
         reasoning += "[/THINK]</i>\n";
     }
     
@@ -892,9 +892,9 @@ export async function refreshActiveMessage() {
     // => see function: refreshActiveMessage() where message formatting may be updated.
     
     let reasoning = "";
-    if ( activeMessage.reasoningContent != null ) {
+    if ( activeMessage.reasoning_content != null ) {
         reasoning += "<i>[THINK]\n"; // show the reasoning in italic style.
-        reasoning += activeMessage.reasoningContent + "\n";
+        reasoning += activeMessage.reasoning_content + "\n";
         reasoning += "[/THINK]</i>\n";
     }
     

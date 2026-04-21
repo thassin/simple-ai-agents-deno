@@ -110,8 +110,8 @@ export function clearEverything() {
     // add the system-prompt into completed messages.
     completedMessages.push({
         role: Role.System,
+        reasoning_content: undefined,
         content: currentTools.system_prompt,
-        reasoningContent: null,
         tool_calls: undefined,
         tool_call_id: undefined,
         timings2: null,
@@ -144,8 +144,8 @@ function addToPendingMessages(role: Role, content: string, continueUpdatesToActi
     // first add to messages cache.
     let message: _UI_Message = {
         role: role,
+        reasoning_content: undefined,
         content: content,
-        reasoningContent: null,
         tool_calls: undefined,
         tool_call_id: undefined,
         timings2: null,
@@ -534,8 +534,8 @@ export async function appendContentsToActiveMessage(newMessageContent: string, n
     activeMessage.content += newMessageContent;
     
     if ( newReasoningContent !== "" ) {
-        if ( activeMessage.reasoningContent == null ) activeMessage.reasoningContent = "";
-        activeMessage.reasoningContent += newReasoningContent;
+        if ( activeMessage.reasoning_content == null ) activeMessage.reasoning_content = "";
+        activeMessage.reasoning_content += newReasoningContent;
     }
     
     // skip the UI-related part here.

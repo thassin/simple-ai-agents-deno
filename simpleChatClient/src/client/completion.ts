@@ -37,8 +37,8 @@ export interface _ChatPostResponse {
 export interface _UI_Message { // vrt _OaiApi_v1ChatCompletionRequest_MessageParam
     role: Role;
     
+    reasoning_content: string|undefined;
     content: string;
-    reasoningContent: string|null;
     
     // the fields above are consistent with the _OaiApi_v1ChatCompletionRequest_MessageParam interface.
     
@@ -56,6 +56,8 @@ export interface _UI_Message { // vrt _OaiApi_v1ChatCompletionRequest_MessagePar
 export function createCopy(message: _UI_Message): _OaiApi_v1ChatCompletionRequest_MessageParam {
     return {
         role: message.role,
+        
+        reasoning_content: message.reasoning_content,
         content: message.content,
     };
 }
@@ -87,12 +89,15 @@ export interface _OaiApi_v1ChatCompletionRequest {
     store: boolean;
     stream: boolean;
     
+    // TODO these are related to model and temperature...
     reasoning_format: ReasoningFormat|undefined;
     reasoning_effort: ReasoningEffort|undefined;
 }
 
 export interface _OaiApi_v1ChatCompletionRequest_MessageParam {
     role: Role;
+    
+    reasoning_content: string|undefined;
     content: string;
 };
 
@@ -138,8 +143,10 @@ export interface _OaiApi_v1ChatCompletionResponse_Choice {
 
 export interface _OaiApi_v1ChatCompletionResponse_Message {
     role: Role;
+    
     reasoning_content: string|undefined;
     content: string|undefined; // either-or refusal
+    
     refusal: string|undefined; // either-or content
 };
 
@@ -181,8 +188,8 @@ export interface _OaiApi_v1ChatCompletionStreamResponse_Choice {
 };
 
 export interface _OaiApi_v1ChatCompletionStreamResponse_Delta {
-    content: string|undefined;
     reasoning_content: string|undefined;
+    content: string|undefined;
 };
 
 export function isValidStreamResponse(obj: unknown): obj is _OaiApi_v1ChatCompletionStreamResponse {

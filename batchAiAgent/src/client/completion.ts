@@ -53,8 +53,8 @@ export interface _ChatPostResponse {
 export interface _UI_Message { // vrt _OaiApi_v1ChatCompletionRequest_MessageParam
     role: Role;
     
+    reasoning_content: string|undefined;
     content: string;
-    reasoningContent: string|null;
     
     tool_calls: Array<_OaiApi_v1ChatCompletionResponse_ToolCall>|undefined;
     tool_call_id: string|undefined;
@@ -78,7 +78,10 @@ export interface _UI_Message { // vrt _OaiApi_v1ChatCompletionRequest_MessagePar
 export function createCopy(message: _UI_Message): _OaiApi_v1ChatCompletionRequest_MessageParam {
     return {
         role: message.role,
+        
+        reasoning_content: message.reasoning_content,
         content: message.content,
+        
         tool_calls: message.tool_calls,
         tool_call_id: message.tool_call_id,
     };
@@ -123,6 +126,8 @@ export interface _OaiApi_v1ChatCompletionRequest {
 
 export interface _OaiApi_v1ChatCompletionRequest_MessageParam {
     role: Role;
+    
+    reasoning_content: string|undefined;
     content: string;
     
     tool_calls: Array<_OaiApi_v1ChatCompletionResponse_ToolCall>|undefined;
@@ -171,8 +176,10 @@ export interface _OaiApi_v1ChatCompletionResponse_Choice {
 
 export interface _OaiApi_v1ChatCompletionResponse_Message {
     role: Role;
+    
     reasoning_content: string|undefined;
     content: string|undefined; // either-or refusal
+    
     refusal: string|undefined; // either-or content
     
     tool_calls: Array<_OaiApi_v1ChatCompletionResponse_ToolCall>|undefined;
@@ -248,8 +255,8 @@ export interface _OaiApi_v1ChatCompletionStreamResponse_Choice {
 };
 
 export interface _OaiApi_v1ChatCompletionStreamResponse_Delta {
-    content: string|undefined;
     reasoning_content: string|undefined;
+    content: string|undefined;
     
     tool_calls: Array<_OaiApi_v1ChatCompletionResponse_ToolCall>|undefined;
 };

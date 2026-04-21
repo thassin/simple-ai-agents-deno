@@ -16,6 +16,8 @@ import {
     _OaiApi_v1ChatCompletionResponse_Choice,
 } from "./completion.ts";
 
+//let rawFileCounter = 0; // for debug use only...
+
 export async function handlePost_buffered(postData: _OaiApi_v1ChatCompletionRequest, aborter: AbortController): Promise<_ChatPostResponse> {
     console.log("send BUFFERED request to AI-server...");
     
@@ -38,6 +40,9 @@ export async function handlePost_buffered(postData: _OaiApi_v1ChatCompletionRequ
         // abort if connection is not about to start, but without limiting connection length.
         //const timeout_id = setTimeout(() => { errorMessage = ERR_TIMEOUT; aborter.abort(); }, connectionTimeout_ms);
         //const time1 = performance.now();
+        
+//const rawRequestName = "rawfile-" + rawFileCounter++ + "-request";
+//postLogEvent("postB " + rawRequestName + ": " + JSON.stringify(postData, null, 4));
         
         const response: Response = await fetch(llama_url, {
             method: 'POST',
@@ -62,7 +67,8 @@ export async function handlePost_buffered(postData: _OaiApi_v1ChatCompletionRequ
 //const time3 = performance.now(); THIS IS JUST TO INDICATE that .json() returns almost immediately...
 //console.log("delay to response-2 was: " + 0.001 * (time3 - time1) + " seconds.");
             
-            //postLogEvent("postB JSON: " + JSON.stringify(obj, null, 4));
+//const rawResponseName = "rawfile-" + rawFileCounter++ + "-response";
+//postLogEvent("postB " + rawResponseName + ": " + JSON.stringify(obj, null, 4));
             
             if ( isValidResponse(obj) ) {
                 const resp: _OaiApi_v1ChatCompletionResponse = obj;
@@ -75,7 +81,8 @@ if ( c.index !== 0 ) console.error("found SPECIAL c.index:", c); // never happen
                     
                     const reason = c.finish_reason;
                     
-                    //postLogEvent("postB choice: " + reason);
+                    // print out finish_reason:
+                    //console.log("postB dump c.finish_reason:", reason);
                     
                     let completed1: boolean = false;
                     
@@ -106,7 +113,7 @@ if ( c.index !== 0 ) console.error("found SPECIAL c.index:", c); // never happen
                         let tool_calls = c.message.tool_calls;
                         if ( tool_calls != null ) {
                             for ( const tcItem of tool_calls ) {
-                                postLogEvent("postB push-new-tool-call: " + JSON.stringify(tcItem, null, 4));
+                                //postLogEvent("postB push-new-tool-call: " + JSON.stringify(tcItem, null, 4));
                                 toolCalls.push(tcItem);
                             }
                         }
@@ -132,6 +139,10 @@ if ( c.index !== 0 ) console.error("found SPECIAL c.index:", c); // never happen
                         
                         let reasoningContent = c.message.reasoning_content;
                         if ( reasoningContent == null ) reasoningContent = "";
+                        
+                        // print out reasoning and output:
+                        //console.log("postB dump reasoning:", reasoningContent);
+                        //console.log("postB dump output:", content);
                         
                         appendContentsToActiveMessage(content, reasoningContent);
                         

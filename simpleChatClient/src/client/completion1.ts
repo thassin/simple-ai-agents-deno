@@ -58,8 +58,6 @@ export async function handlePost_buffered(postData: _OaiApi_v1ChatCompletionRequ
 //const time3 = performance.now(); THIS IS JUST TO INDICATE that .json() returns almost immediately...
 //console.log("delay to response-2 was: " + 0.001 * (time3 - time1) + " seconds.");
             
-            //postLogEvent("postB JSON: " + JSON.stringify(obj, null, 4));
-            
             if ( isValidResponse(obj) ) {
                 const resp: _OaiApi_v1ChatCompletionResponse = obj;
                 if ( resp.choices.length > 0 ) {
@@ -71,7 +69,8 @@ if ( c.index !== 0 ) console.error("found SPECIAL c.index:", c); // never happen
                     
                     const reason = c.finish_reason;
                     
-                    //postLogEvent("postB choice: " + reason);
+                    // print out finish_reason:
+                    //console.log("postB dump c.finish_reason:", reason);
                     
                     let completed1: boolean = false;
                     
@@ -115,6 +114,10 @@ if ( c.index !== 0 ) console.error("found SPECIAL c.index:", c); // never happen
                         
                         let reasoningContent = c.message.reasoning_content;
                         if ( reasoningContent == null ) reasoningContent = "";
+                        
+                        // print out reasoning and output:
+                        //console.log("postB dump reasoning:", reasoningContent);
+                        //console.log("postB dump output:", content);
                         
                         appendContentsToActiveMessage(content, reasoningContent);
                         
