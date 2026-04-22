@@ -170,28 +170,14 @@ toolsSection += "If instructed to write data to a file, it is safe to proceed, w
         reasoning += "[THINK]\n";
         reasoning += "Your thoughts or/and draft, like working through an exercise on scratch paper.\n";
         reasoning += "Be as casual and as long as you want until you are confident to generate the response to the user.\n";
-        
-        // tool-calling related:
-        //reasoning += "You can also sketch out tool calls here, but any generated json is just a draft, it will not execute the tool call.\n";
-        reasoning += "You can also sketch out tool calls here, but the calls are **draft only** and NOT executed.\n";
-        reasoning += "Never use the [TOOL_CALLS] token in this section! It belongs to self-contained response, not here!\n";
-        
-// In the context of llama.cpp and Jinja templates, terms like [TOOL_CALLS] and [THINK] are formally called Special Tokens or Control Tokens.
-// In the context of llama.cpp and Jinja templates, terms like [TOOL_CALLS] and [THINK] are formally called Special Tokens or Control Tokens.
-// In the context of llama.cpp and Jinja templates, terms like [TOOL_CALLS] and [THINK] are formally called Special Tokens or Control Tokens.
-        
         reasoning += "[/THINK]\n";
         reasoning += "Here, provide a self-contained response.\n";
         
-        // tool-calling related:
-        //reasoning += "Generate final tool calls to be executed here, using the [TOOL_CALLS] section.\n";
-        reasoning += "Generate real tool calls to be executed here, using the [TOOL_CALLS] token.\n";
+        // https://huggingface.co/mistralai/Ministral-3-8B-Reasoning-2512/discussions/5 
+        reasoning += "It is imperative to close the [THINK] tag with a [/THINK] closing tag once you are ready to present the answer to the user or start a tool-call.\n";
         
-// 20260421 combining reasoning with tool-calling seems not be staightforward?
-// => intended process may stop and/or required tool-calling steps may be omitted?!?
-
-// FOUND LATER A MISTAKE which caused loss of generated reasoning contents.
-// => so the additional instructions above may or may not help/affect (to be tested further later).
+// 20260422 using Ministral-3-8B-Reasoning there indeed was problems in closing the reasoning-stage.
+// => the symptom was that tool-calling steps were lost and an empty respose was given.
 
 // THE PROBLEM WAS LIKE THIS:
 // sometimes stuff like this is seen on reasoning-content side (while it should go to real-content side):

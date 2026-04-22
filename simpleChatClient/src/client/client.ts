@@ -80,6 +80,10 @@ export function clearEverything() {
         reasoning += "Be as casual and as long as you want until you are confident to generate the response to the user.\n";
         reasoning += "[/THINK]\n";
         reasoning += "Here, provide a self-contained response.\n";
+        
+        // https://huggingface.co/mistralai/Ministral-3-8B-Reasoning-2512/discussions/5 
+        reasoning += "It is imperative to close the [THINK] tag with a [/THINK] closing tag once you are ready to present the answer to the user.\n";
+        
         reasoning += "\n";
     }
     
