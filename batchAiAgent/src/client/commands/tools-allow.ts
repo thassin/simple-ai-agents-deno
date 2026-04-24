@@ -50,7 +50,7 @@ export class ToolsAllowCommand implements _Command {
             warnings = resp.warnings;
             console.log("response: success=" + success + " num_changed=" + num_permissions_changed + " warnings=" + warnings.length);
         }
-        updateTools(); // call updateTools() now so that prompt messages get updated.
+        await updateTools(); // call updateTools() now so that prompt messages get updated.
         
         const tools = getToolNamesAndPermissions();
         const txt1 = "Allowed ✅";
