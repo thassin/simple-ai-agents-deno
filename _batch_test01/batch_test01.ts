@@ -13,8 +13,11 @@ console.log(out1);
 // => therefore call it AFTER adjusting the proper tool permissions.
 clearEverything();
 
+let prefill: string|null = null;
+//prefill = "Yes, yes YES ofcourse! OK-1-2-3-4-5! Here"; // 20260528 not working as expected.
+
 const prompt = "print out 3 animal emojis, and create funny names for them.";
-await handleSubmit(prompt);
+await handleSubmit(prompt, prefill);
 
 console.log("PRINTING OUT ALL MESSAGES:");
 console.log(completedMessages);

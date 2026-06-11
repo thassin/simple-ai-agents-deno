@@ -1,7 +1,23 @@
 
 import {
-    init, clearEverything, handleCommand, handleSubmit, completedMessages, Role,
+    overrideSystemPrompt, init, clearEverything,
+    handleCommand, handleSubmit,
+    completedMessages, Role,
 } from "batch_ai_agent/batch.ts";
+
+const mySystemPrompt = `
+You are an expert language translator.
+Your only task is to accurately translate the provided text into the requested target language.
+
+Follow these rules strictly:
+1. Translate the meaning naturally. Do not provide literal, word-for-word translations if it alters the natural flow of the target language.
+2. Preserve formatting (e.g., bullet points, Markdown, capitalization).
+3. Do not include introductory or concluding remarks (e.g., "Here is your translation").
+4. Output ONLY the translated text.
+`;
+
+// calling this before init() will set a custom system-prompt (with tools-section appended).
+overrideSystemPrompt(mySystemPrompt);
 
 await init();
 

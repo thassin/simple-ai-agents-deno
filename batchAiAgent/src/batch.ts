@@ -14,3 +14,10 @@ export {
     Role,
 } from "./client/completion.ts";
 
+// TODO anything other from server?
+// => are these more tricky to port into chat-agent?!?
+
+export {
+    overrideSystemPrompt,
+} from "./server/prompt.ts";
+

@@ -57,16 +57,26 @@ const working_directory = piResult.working_directory;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-export async function init(): Promise<void> {
+export async function init(configName: string|null = null): Promise<void> {
+    // assign the default values.
+    let llama_api_url = LLAMA_API_URL;
+    let llama_temperature = LLAMA_TEMPERATURE;
+    let llama_reasoning_effort = LLAMA_REASONING_EFFORT;
+    
+    // if configName is set => change the config as requested.
+    if ( configName != null ) {
+        // TODO...
+    }
+    
     config = {
         ai_agent_name: AI_AGENT_NAME,
         ai_agent_version: AI_AGENT_VERSION,
         ui_long_name: LONG_NAME,
         ui_const_ok: "OK: ",
         ui_const_err: "ERROR: ",
-        llama_api_url: LLAMA_API_URL,
-        llama_temperature: LLAMA_TEMPERATURE,
-        llama_reasoning_effort: LLAMA_REASONING_EFFORT,
+        llama_api_url: llama_api_url,
+        llama_temperature: llama_temperature,
+        llama_reasoning_effort: llama_reasoning_effort,
         use_streaming: USE_STREAMING,
         path_info: path_info,
         current_working_directory: working_directory,
@@ -112,6 +122,7 @@ export function clearEverything() {
         role: Role.System,
         reasoning_content: undefined,
         content: currentTools.system_prompt,
+        prefix: undefined,
         tool_calls: undefined,
         tool_call_id: undefined,
         timings2: null,
@@ -146,6 +157,7 @@ function addToPendingMessages(role: Role, content: string, continueUpdatesToActi
         role: role,
         reasoning_content: undefined,
         content: content,
+        prefix: undefined, // TODO: 1) is this mistral-only? 2) depends on "content" parameter in principle.
         tool_calls: undefined,
         tool_call_id: undefined,
         timings2: null,
@@ -164,7 +176,7 @@ function addToPendingMessages(role: Role, content: string, continueUpdatesToActi
 // FOR DOCUMENTATION ABOUT TOOLS-RELATED MESSAGING SEE:
 // https://gist.github.com/philipp-meier/678a4679d0895276f270fac4c046ad14 
 
-export async function handleSubmit(prompt: string) {
+export async function handleSubmit(prompt: string, prefill: string|null) {
     // check that no concurrent posts can be done.
     // => if a post is already in progress, the "aborter" object is set.
     if ( aborter != null ) {
@@ -182,7 +194,7 @@ export async function handleSubmit(prompt: string) {
     
     // pendingMessages should be EMPTY now.
     // => add the "user"-role message now into pendingMessages.
-    // => the "assistant"-role message will be added in handlePost_XX call.
+    // => the "assistant"-role message will be added in tool-calling-loop below.
     addToPendingMessages(Role.User, prompt);
     
     // skip the UI-related part here.
@@ -248,7 +260,17 @@ export async function handleSubmit(prompt: string) {
         // => we only know the role after the LLM has responded us a "finish_reason" value.
         // THEREFORE we add a new message using "assistant" role, and later change it to "tool" role if needed.
         
-        addToPendingMessages(Role.Assistant, "", true);
+        let assistantMessageContent = "";
+        if ( prefill != null ) assistantMessageContent = prefill;
+        
+        addToPendingMessages(Role.Assistant, assistantMessageContent, true);
+        
+        if ( prefill != null ) {
+            const _lastItemIndex = pendingMessages.length - 1;
+            const lastMessage: _UI_Message = pendingMessages[_lastItemIndex];
+            // TODO need to set the mistral "prefix" flag now?!?
+            lastMessage.prefix = true;
+        }
         
         //postLogEvent("post_2_llama: " + JSON.stringify(postData, null, 4));
         

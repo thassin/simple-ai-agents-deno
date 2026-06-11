@@ -12,6 +12,12 @@ import {
 
 import { getActiveTools } from "./tools.ts";
 
+let customSystemPrompt: string|null = null;
+
+export function overrideSystemPrompt(value: string|null): void {
+    customSystemPrompt = value;
+}
+
 export async function getSystemPrompt(path_info: _ConfigPathInfo|null): Promise<string> {
     const date = new Date();
     
@@ -25,6 +31,9 @@ export async function getSystemPrompt(path_info: _ConfigPathInfo|null): Promise<
     //const dateStr = "year=" + year + " month=" + month + " day=" + day;
     const dateStr = year + "-" + month.toString().padStart(2, "0") + "-" + day.toString().padStart(2, "0");
     const timeStr = hour.toString().padStart(2, "0") + ":" + minute.toString().padStart(2, "0");
+    
+    // create default intro + project sections.
+    // => these will be overridden by customSystemPrompt if specified!
     
     let introSection = "";
     introSection += "You are a helpful assistant";
@@ -118,6 +127,12 @@ export async function getSystemPrompt(path_info: _ConfigPathInfo|null): Promise<
         projectSection += "\n"; // add a bit formatting.
     }
     
+    // now apply customSystemPrompt if specified.
+    if ( customSystemPrompt != null ) {
+        introSection = customSystemPrompt.trim();
+        projectSection = "\n\n"; // add a bit formatting (after trim).
+    }
+    
     let toolsCount = 0;
     let toolsListing = "";
     const activeTools = getActiveTools();
@@ -150,9 +165,7 @@ toolsSection += "If instructed to write data to a file, it is safe to proceed, w
         toolsSection += "\n\n";
     }
     
-    let endSection = "";
-    // TODO tartteeko mitään tällaista?!? onhan tämä kuitenkin siellä "system" osiossa ja siksi erillinen juttu?!?
-    endSection += "End of project introduction.\n\n";
+    const endSection = ""; // 20260527 this is not needed after all?!?
     
     let reasoning = "";
     if ( LLAMA_REASONING_EFFORT !== ReasoningEffort.None ) {

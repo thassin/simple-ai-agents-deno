@@ -150,9 +150,7 @@ toolsSection += "If instructed to write data to a file, it is safe to proceed, w
         toolsSection += "\n\n";
     }
     
-    let endSection = "";
-    // TODO tartteeko mitään tällaista?!? onhan tämä kuitenkin siellä "system" osiossa ja siksi erillinen juttu?!?
-    endSection += "End of project introduction.\n\n";
+    const endSection = ""; // 20260527 this is not needed after all?!?
     
     let reasoning = "";
     if ( LLAMA_REASONING_EFFORT !== ReasoningEffort.None ) {
