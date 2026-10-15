@@ -1,6 +1,8 @@
 
 import {
-    overrideSystemPrompt, init, clearEverything,
+    overrideSystemPrompt,
+    getCurrentSystemPrompt,
+    init, clearEverything,
     handleCommand, handleSubmit,
     completedMessages, Role,
 } from "batch_ai_agent/batch.ts";
@@ -29,16 +31,21 @@ console.log(out1);
 // => therefore call it AFTER adjusting the proper tool permissions.
 clearEverything();
 
+console.log("**** START of full system prompt ****");
+console.log();
+console.log(getCurrentSystemPrompt());
+console.log();
+console.log("**** END of full system prompt ****");
+
 // this test covers AI tool calling.
 // => we instruct AI to read a local file, and write a result to another local file.
 
 const prompt = `
-Use read_file tool to read a local file: "./test_IN.txt"
-It contains some text in french. Translate the text to english.
-As a last step, use write_file tool to save the translation to a local file: "./test_OUT.txt"
+Use read_file tool to read a local file: "./test_IN_fr.txt" which ontains some text in french.
+Translate the text to english, and use write_file tool to save the translation to a local file: "./test_OUT_en.txt"
 `;
 
-await handleSubmit(prompt);
+await handleSubmit(prompt, null);
 
 //console.log("PRINTING OUT ALL MESSAGES:");
 //console.log(completedMessages);
@@ -64,6 +71,13 @@ let lastAssistantReasoning = "";
 let lastResponse_totalTokenCount = -1;
 if ( completedMessages.length > 0 ) {
     const lastMessage = completedMessages[completedMessages.length - 1];
+    
+    if ( lastMessage.stopped && lastMessage.errorMessages === "fetch failed" ) {
+        console.log();
+        console.log("ERROR: there was no response from server, check connection.");
+        Deno.exit(1);
+    }
+    
     if ( lastMessage.role === Role.Assistant ) {
         lastAssistantResponse = lastMessage.content;
         if ( lastMessage.reasoning_content != null ) lastAssistantReasoning = lastMessage.reasoning_content;

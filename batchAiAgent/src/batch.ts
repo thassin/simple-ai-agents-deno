@@ -3,7 +3,9 @@
 // which re-exports the core functionality of this library.
 
 export {
-    init, clearEverything, handleSubmit, completedMessages,
+    getCurrentSystemPrompt,
+    init, clearEverything,
+    handleSubmit, completedMessages,
 } from "./client/client.ts";
 
 export {

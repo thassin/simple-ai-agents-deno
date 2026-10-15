@@ -80,7 +80,7 @@ export interface _ConfigResponse {
     llama_api_url: string;
     
     // TODO these are related to model and temperature...
-    llama_temperature: number;
+    llama_temperature: number|undefined;
     llama_reasoning_effort: ReasoningEffort;
     
     use_streaming: boolean;

@@ -4,9 +4,7 @@ import {
 } from "./shared/shared.ts";
 
 export const LLAMA_API_URL: string = "http://localhost:9999";
-
-export const LLAMA_TEMPERATURE: number = 0.1;
-
+export const LLAMA_TEMPERATURE: number|undefined = undefined;
 // options: None (to disable reasoning), Minimal, Low, Medium, High, XtraHigh.
 export const LLAMA_REASONING_EFFORT: ReasoningEffort = ReasoningEffort.None;
 

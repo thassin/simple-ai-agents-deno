@@ -9,6 +9,7 @@ import { route, type Route } from "@std/http/unstable-route";
 import {
     _HashMap,
     isObject, isArray, isString,
+    ReasoningEffort,
     _LogRequest, _LogResponse,
     _ConfigResponse, _ConfigPathInfo, isValidConfigResponse,
     _ToolsResponse, isValidToolsResponse,
@@ -28,9 +29,39 @@ import { getHTML } from "../html_final/html.ts";
 import { getSystemPrompt } from "./prompt.ts";
 import { allTools, getActiveTools, handleToolPermissions } from "./tools.ts";
 
-console.log(LONG_NAME + " v" + AI_AGENT_VERSION + " starting...");
-
 const args = parseArgs();
+
+// assign the default values.
+let llama_api_url = LLAMA_API_URL;
+let llama_temperature = LLAMA_TEMPERATURE;
+let llama_reasoning_effort = LLAMA_REASONING_EFFORT;
+
+// if configName is set => change the config as requested.
+if ( args.configName != null ) {
+    // TODO... set your custom values above based on configName.
+}
+
+// if help option was set, display help and quit.
+if ( args.help ) {
+    console.log(LONG_NAME + " v" + AI_AGENT_VERSION);
+    console.log();
+    
+    console.log("Options:");
+    console.log("  -c, --config         Set configuration name.");
+    console.log("  -rd, --root-dir      Assign fixed project directory.");
+    console.log("  -s, --simple         Ignore project directory.");
+    console.log("  -h, --help           Display options and quit.");
+    console.log();
+
+    console.log("Current configuration:");
+    console.log("  api_url:             " + llama_api_url);
+    console.log("  temperature:         " + llama_temperature);
+    console.log("  reasoning_effort:    " + llama_reasoning_effort);
+    
+    Deno.exit(0);
+}
+
+console.log(LONG_NAME + " v" + AI_AGENT_VERSION + " starting...");
 
 // for sake of simplicity, let's declare working_directory as const.
 // => either set project-root using commandline options, or detect it automatically.
@@ -38,15 +69,15 @@ const working_directory = Deno.cwd();
 
 const path_info = await setupPathInfo();
 
-const config: _ConfigResponse = {
+export const config: _ConfigResponse = {
     ai_agent_name: AI_AGENT_NAME,
     ai_agent_version: AI_AGENT_VERSION,
     ui_long_name: LONG_NAME,
     ui_const_ok: "OK: ",
     ui_const_err: "ERROR: ",
-    llama_api_url: LLAMA_API_URL,
-    llama_temperature: LLAMA_TEMPERATURE,
-    llama_reasoning_effort: LLAMA_REASONING_EFFORT,
+    llama_api_url: llama_api_url,
+    llama_temperature: llama_temperature,
+    llama_reasoning_effort: llama_reasoning_effort,
     use_streaming: USE_STREAMING,
     path_info: path_info,
     current_working_directory: working_directory,
@@ -124,8 +155,14 @@ const b_url = "http://" + hostname + ":" + port + "/";
 let browserApp = "";
 const b_args = new Array<string>();
 
+// case FIREFOX:
+
 const browserApp_ff = "firefox";
+// @ts-ignore : is intentional compare, never mind.
 if ( BROWSER === browserApp_ff ) {
+
+    /*
+    // this is the original way of starting firefox browser (before aug-2026):
     browserApp = browserApp_ff;
     // use a custom profile in firefox => browser will remember window-size settings.
     b_args.push("-P");
@@ -134,9 +171,29 @@ if ( BROWSER === browserApp_ff ) {
     b_args.push("--private-window");
     // tell browser to open the app URL.
     b_args.push(b_url);
+    */
+
+    // in aug-2026 firefox behaviour changed, so that it just seems to return immediately,
+    // and there is no commandline option that would make it wait for pages/tabs to be closed.
+    // => chain the browser-launch-command to a "sleep" command, to keep our server running.
+    // => and then launch a shell instance to handle the chained commands.
+    browserApp = "sh";
+    b_args.push("-c");
+    b_args.push(browserApp_ff + " -P test --private-window " + b_url + " && sleep infinity");
 }
 
+// case CHROMIUM:
 
+const browserApp_c = "chromium";
+if ( BROWSER === browserApp_c ) {
+    // chromium process keeps running until all pages/tabs are closed.
+    browserApp = browserApp_c;
+    // use a custom profile => browser will remember window-size settings???
+    b_args.push("--new-window");
+    b_args.push("--incognito");
+    // tell browser to open the app URL.
+    b_args.push(b_url);
+}
 
 if ( browserApp === "" ) {
     console.log("ERROR: unknown browser app: " + BROWSER + ".");
@@ -177,6 +234,14 @@ try {
 server.finished.then(() => console.log(LONG_NAME + " says goodbye!"));
 
 //////////////////////////////////////////////////////////////////////////////////////////////
+
+function report_api_url(value: string): void {
+    console.log("using llama_api_url: " + value);
+}
+
+function report_reasoning_effort(value: ReasoningEffort): void {
+    console.log("using llama_reasoning_effort: " + value);
+}
 
 function indexHandler(): Response {
     const content = getHTML();
@@ -498,19 +563,29 @@ async function getParentDirPathOrEmpty(path: string): Promise<string> {
 interface _Args {
     simple: boolean; // do not try to determine project-root-dir (leaving path_info null).
     rootDir: string|null; // explicitly set the project-root-dir.
+    configName: string|null; // specify configuration.
+    help: boolean; // just display help and exit.
 }
 
 function parseArgs(): _Args {
     let args: _Args = {
         simple: false,
         rootDir: null,
+        configName: null,
+        help: false,
     };
     
     const OPT_S_1 = "-s";
     const OPT_S_2 = "--simple";
-
+    
     const OPT_RD_1 = "-rd";
     const OPT_RD_2 = "--root-dir";
+    
+    const OPT_C_1 = "-c";
+    const OPT_C_2 = "--config";
+    
+    const OPT_H_1 = "-h";
+    const OPT_H_2 = "--help";
     
     const ERR_BAD_OPTIONS = "ERROR: conflicting options detected.";
     const ERR_UNK_OPTION = "ERROR: unknown option: ";
@@ -522,6 +597,8 @@ function parseArgs(): _Args {
         
         let isOK = false;
         
+        // options with no parameter (just clear "prev" for these).
+        
         if ( arg === OPT_S_1 || arg === OPT_S_2 ) {
             if ( args.rootDir != null ) {
                 console.log(ERR_BAD_OPTIONS);
@@ -532,6 +609,18 @@ function parseArgs(): _Args {
             isOK = true;
         }
         
+        if ( arg === OPT_H_1 || arg === OPT_H_2 ) {
+            if ( args.rootDir != null ) {
+                console.log(ERR_BAD_OPTIONS);
+                Deno.exit(1);
+            }
+            args.help = true;
+            prev = "";
+            isOK = true;
+        }
+        
+        // handle parameter values (if "prev" contains short option type).
+        
         // check if the previous option was about root-dir.
         if ( prev === OPT_RD_1 ) {
             args.rootDir = arg;
@@ -539,12 +628,26 @@ function parseArgs(): _Args {
             isOK = true;
         }
         
+        // check if the previous option was about config-name.
+        if ( prev === OPT_C_1 ) {
+            args.configName = arg;
+            prev = arg = ""; // CLEAR BOTH NOW.
+            isOK = true;
+        }
+        
+        // options with parameter (need to set "prev" for these).
+        
         if ( arg === OPT_RD_1 || arg === OPT_RD_2 ) {
             if ( args.simple ) {
                 console.log(ERR_BAD_OPTIONS);
                 Deno.exit(1);
             }
             prev = OPT_RD_1;
+            isOK = true;
+        }
+        
+        if ( arg === OPT_C_1 || arg === OPT_C_2 ) {
+            prev = OPT_C_1;
             isOK = true;
         }
         

@@ -1,6 +1,8 @@
 
 import {
-    init, clearEverything, handleCommand, handleSubmit, completedMessages, Role,
+    init, clearEverything,
+    handleCommand, handleSubmit,
+    completedMessages, Role,
 } from "batch_ai_agent/batch.ts";
 
 await init();
@@ -13,10 +15,11 @@ console.log(out1);
 // => therefore call it AFTER adjusting the proper tool permissions.
 clearEverything();
 
+const prompt = "print out 3 animal emojis, and create funny names for them.";
+
 let prefill: string|null = null;
 //prefill = "Yes, yes YES ofcourse! OK-1-2-3-4-5! Here"; // 20260528 not working as expected.
 
-const prompt = "print out 3 animal emojis, and create funny names for them.";
 await handleSubmit(prompt, prefill);
 
 console.log("PRINTING OUT ALL MESSAGES:");
@@ -26,6 +29,13 @@ let lastAssistantResponse = "";
 let lastResponse_totalTokenCount = -1;
 if ( completedMessages.length > 0 ) {
     const lastMessage = completedMessages[completedMessages.length - 1];
+    
+    if ( lastMessage.stopped && lastMessage.errorMessages === "fetch failed" ) {
+        console.log();
+        console.log("ERROR: there was no response from server, check connection.");
+        Deno.exit(1);
+    }
+    
     if ( lastMessage.role === Role.Assistant ) {
         lastAssistantResponse = lastMessage.content;
         lastResponse_totalTokenCount = lastMessage.t_prompt_n + lastMessage.t_predicted_n;

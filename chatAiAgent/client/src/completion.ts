@@ -110,7 +110,7 @@ export interface _OaiApi_v1ChatCompletionRequest {
     
     messages: Array<_OaiApi_v1ChatCompletionRequest_MessageParam>;
     //max_tokens: number|undefined;
-    temperature: number;
+    temperature: number|undefined;
     store: boolean;
     stream: boolean;
     

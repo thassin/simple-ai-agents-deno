@@ -33,7 +33,7 @@ import { allTools, getActiveTools, handleToolPermissions } from "../server/tools
 import { toolCallHandler } from "../server/server.ts";
 
 // this is set in init() -function.
-let config: _ConfigResponse;
+export let config: _ConfigResponse;
 
 // this is set in init() -function and updated in updateTools() -function.
 let currentTools: _ToolsResponse;
@@ -57,6 +57,14 @@ const working_directory = piResult.working_directory;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+function report_api_url(value: string): void {
+    console.log("using llama_api_url: " + value);
+}
+
+function report_reasoning_effort(value: ReasoningEffort): void {
+    console.log("using llama_reasoning_effort: " + value);
+}
+
 export async function init(configName: string|null = null): Promise<void> {
     // assign the default values.
     let llama_api_url = LLAMA_API_URL;
@@ -65,7 +73,7 @@ export async function init(configName: string|null = null): Promise<void> {
     
     // if configName is set => change the config as requested.
     if ( configName != null ) {
-        // TODO...
+        // TODO... set your custom values above based on configName.
     }
     
     config = {
@@ -110,6 +118,11 @@ export async function updateTools() {
         }
     }
     currentTools.system_prompt = await getSystemPrompt(path_info);
+}
+
+// call this after init() or updateTools() to get full up-to-date system prompt.
+export function getCurrentSystemPrompt(): string {
+    return currentTools.system_prompt;
 }
 
 export function clearEverything() {

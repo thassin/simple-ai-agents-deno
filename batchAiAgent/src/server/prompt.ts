@@ -5,11 +5,12 @@ import {
 } from "../shared/shared.ts";
 
 import {
-    LLAMA_REASONING_EFFORT,
+    //LLAMA_REASONING_EFFORT,
     PROJECT_README_FILENAME,
     PROJECT_AGENTS_FILENAME,
 } from "../config.ts";
 
+import { config } from "../client/client.ts";
 import { getActiveTools } from "./tools.ts";
 
 let customSystemPrompt: string|null = null;
@@ -130,7 +131,7 @@ export async function getSystemPrompt(path_info: _ConfigPathInfo|null): Promise<
     // now apply customSystemPrompt if specified.
     if ( customSystemPrompt != null ) {
         introSection = customSystemPrompt.trim();
-        projectSection = "\n\n"; // add a bit formatting (after trim).
+        projectSection = "\n\n"; // clear this (but keep formatting).
     }
     
     let toolsCount = 0;
@@ -168,7 +169,8 @@ toolsSection += "If instructed to write data to a file, it is safe to proceed, w
     const endSection = ""; // 20260527 this is not needed after all?!?
     
     let reasoning = "";
-    if ( LLAMA_REASONING_EFFORT !== ReasoningEffort.None ) {
+    //if ( LLAMA_REASONING_EFFORT !== ReasoningEffort.None ) {
+    if ( config.llama_reasoning_effort !== ReasoningEffort.None ) {
         
         // 20260421 about reasoning:
         // (not sure about others but at least) Ministral-3 needs certain prompt content to enable reasoning.
