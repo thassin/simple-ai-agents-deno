@@ -40,6 +40,9 @@ export async function handlePost_streaming(postData: _OaiApi_v1ChatCompletionReq
         //const timeout_id = setTimeout(() => { errorMessage = ERR_TIMEOUT; aborter.abort(); }, connectionTimeout_ms);
         //const time1 = performance.now();
         
+        // 20261113 : long-running requests may receive "cors"-type responses here, which is a browser thing not present in batchAiAgent.
+        const timeInSeconds1 = Date.now() / 1000;
+        
         const response: Response = await fetch(llama_url, {
             method: 'POST',
             body: JSON.stringify(postData),
@@ -192,8 +195,18 @@ if ( c.index !== 0 ) console.error("found SPECIAL c.index:", c); // never happen
                         throw new Error("ERROR: " + line);
                     }
                 } else {
-                    console.error("ERR: received unknown data:", line);
-                    throw new Error("ERROR: " + line);
+                    const timeInSeconds2 = Date.now() / 1000;
+                    const elapsedTimeSeconds = timeInSeconds2 - timeInSeconds1;
+                    
+                    if ( response.type == "cors" ) {
+                        console.error("got a \"cors\" response but ignoring it, elapsed time = " + elapsedTimeSeconds + " seconds.");
+                        continue; // 20261113 it seems we can simply ignore the "cors"-type responses.
+                    }
+                    
+                    console.error("ERR: fetch duration (in seconds) is: ", elapsedTimeSeconds);
+                    console.error("ERR: unknown response: ", response);
+                    
+                    throw new Error("ERROR: " + response.type);
                 }
             }
             

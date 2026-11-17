@@ -44,6 +44,8 @@ export async function handlePost_buffered(postData: _OaiApi_v1ChatCompletionRequ
 //const rawRequestName = "rawfile-" + rawFileCounter++ + "-request";
 //postLogEvent("postB " + rawRequestName + ": " + JSON.stringify(postData, null, 4));
         
+        // TODO 20261113 : see streaming mode and "cors"-type responses in long-running requests?!?
+        
         const response: Response = await fetch(llama_url, {
             method: 'POST',
             body: JSON.stringify(postData),
